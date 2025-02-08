@@ -22,7 +22,7 @@ A powerful Django application that adds PDF export capabilities to your Django a
 - Company logo integration
 - Professional table styling with grid lines and backgrounds
 
-### 🌍 International Support
+### 🌍 International Support 
 - Complete Unicode compatibility
 - Right-to-left (RTL) text support
 - Arabic text rendering
