@@ -6,40 +6,76 @@
 [![Documentation](https://img.shields.io/badge/docs-github_pages-blue.svg)](https://ibrahimroshdy.github.io/django-pdf-actions/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A powerful Django application that adds PDF export capabilities to your Django admin interface. Export your model data to beautifully formatted PDF documents with customizable layouts, fonts, and styling.
+A Django application that adds PDF export capabilities to your Django admin interface. Export your model data to PDF documents with customizable layouts and styling.
+
+## Prerequisites
+
+Before installing Django PDF Export, ensure you have:
+- Python 3.8 or higher
+- Django 3.2 or higher
+- pip (Python package installer)
 
 ## Features
 
 ### 📊 Export Capabilities
 - Export any Django model data to PDF directly from the admin interface
 - Support for both portrait and landscape orientations
+- Automatic pagination with configurable items per page
+- Smart table layouts with automatic column width adjustment
+- Support for Django model fields from list_display
 - Batch export multiple records at once
-- Smart pagination and table layouts
-
-### 🎨 Design & Customization
-- Full control over fonts, colors, margins, and spacing
-- Customizable headers and footers
-- Company logo integration
 - Professional table styling with grid lines and backgrounds
 
-### 🌍 International Support
-- Complete Unicode compatibility 
-- Right-to-left (RTL) text support
-- Arabic text rendering
-- Multi-language content in the same document
+### 🎨 Design & Customization
+Through the ExportPDFSettings model, you can configure:
+- Page Layout:
+  - Items per page (1-50)
+  - Page margins (5-50mm)
+  - Automatic column width calculation
+  - Smart pagination handling
+- Font Settings:
+  - Custom font support (TTF files)
+  - Configurable header and body font sizes
+  - Default DejaVu Sans font included
+- Visual Settings:
+  - Company logo integration with flexible positioning
+  - Header background color customization
+  - Grid line color and width control
+  - Professional table styling
+- Display Options:
+  - Toggle header visibility
+  - Toggle logo visibility
+  - Toggle export timestamp
+  - Toggle page numbers
+  - Customizable header and footer information
+- Table Settings:
+  - Cell spacing and padding control
+  - Text wrapping with configurable character limits
+  - Grid line customization
+  - Header row styling
 
-### ⚡ Developer Experience
-- Zero-configuration default settings
-- Simple one-line integration with Django admin
-- Extensible architecture for custom requirements
-- Comprehensive documentation
+### 🌍 International Support
+- Complete Unicode compatibility for all languages
+- Arabic text support with automatic reshaping
+- Bidirectional text handling
+- Multi-language content support in the same document
+- RTL (Right-to-Left) text support
 
 ## Quick Start
 
 ### 1. Installation
 
+#### Using pip (Recommended)
 ```bash
 pip install django-pdf-actions
+```
+
+#### From Source
+If you want to install the latest development version:
+```bash
+git clone https://github.com/ibrahimroshdy/django-pdf-actions.git
+cd django-pdf-actions
+pip install -e .
 ```
 
 ### 2. Add to INSTALLED_APPS
@@ -59,15 +95,49 @@ INSTALLED_APPS = [
 python manage.py migrate
 ```
 
-### 4. Set up Fonts (Optional)
+### 4. Set up Fonts
 
-Run the management command to set up default fonts:
+The package uses fonts from your project's `static/assets/fonts` directory. The default font is DejaVu Sans, which provides excellent Unicode support.
 
-```bash
-python manage.py setup_fonts
+To use custom fonts:
+1. Create the fonts directory if it doesn't exist:
+   ```bash
+   mkdir -p static/assets/fonts
+   ```
+2. Install the default font (DejaVu Sans):
+   ```bash
+   python manage.py setup_fonts
+   ```
+3. Add custom fonts (optional):
+   ```bash
+   # Example: Installing Roboto font
+   python manage.py setup_fonts --font-url "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Regular.ttf" --font-name "Roboto-Regular.ttf"
+   
+   # Example: Installing Cairo font for Arabic support
+   python manage.py setup_fonts --font-url "https://github.com/google/fonts/raw/main/ofl/cairo/Cairo-Regular.ttf" --font-name "Cairo-Regular.ttf"
+   ```
+
+#### Font Directory Structure
+After setup, your project should have this structure:
+```
+your_project/
+├── static/
+│   └── assets/
+│       └── fonts/
+│           ├── DejaVuSans.ttf
+│           ├── Roboto-Regular.ttf (optional)
+│           └── Cairo-Regular.ttf (optional)
 ```
 
-### 5. Add to Your Models
+### 5. Verify Installation
+
+To verify the installation:
+1. Start your Django development server
+2. Navigate to the Django admin interface
+3. Select any model with list view
+4. You should see "Export to PDF (Portrait)" and "Export to PDF (Landscape)" in the actions dropdown
+
+### 6. Add to Your Models
 
 Import and use the PDF export actions in your admin.py:
 
@@ -89,66 +159,69 @@ class YourModelAdmin(admin.ModelAdmin):
 Access the Django admin interface to configure PDF export settings:
 
 1. Go to Admin > Django PDF > Export PDF Settings
-2. Create a new configuration with your desired settings:
-   - Page Layout (margins, items per page)
-   - Font Settings (font family, sizes)
-   - Visual Settings (colors, logo)
-   - Display Options (headers, footers)
-   - Table Settings (spacing, text wrapping)
+2. Create a new configuration with your desired settings
+3. Mark it as active (only one configuration can be active at a time)
 
-Only one configuration can be active at a time. The active configuration will be used for all PDF exports.
+The active configuration will be used for all PDF exports across your admin interface.
 
 ### Available Settings
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Font Name | TTF font to use | DejaVuSans.ttf |
-| Header Font Size | Font size for headers | 10pt |
-| Body Font Size | Font size for content | 7pt |
-| Page Margin | Page margins in mm | 15mm |
-| Items Per Page | Number of rows per page | 10 |
-| Table Spacing | Cell padding in mm | 1.0mm |
-| Grid Line Width | Width of table lines | 0.25pt |
-| Colors | Header and grid colors | Configurable |
+| Setting | Description | Default | Range |
+|---------|-------------|---------|--------|
+| Items Per Page | Rows per page | 10 | 1-50 |
+| Page Margin | Page margins | 15mm | 5-50mm |
+| Font Name | TTF font to use | DejaVuSans.ttf | Any installed TTF |
+| Header Font Size | Header text size | 10 | 6-24 |
+| Body Font Size | Content text size | 7 | 6-18 |
+| Logo | Company logo | Optional | Image file |
+| Header Background | Header color | #F0F0F0 | Hex color |
+| Grid Line Color | Table lines color | #000000 | Hex color |
+| Grid Line Width | Table line width | 0.25 | 0.1-2.0 |
+| Table Spacing | Cell padding | 1.0mm | 0.5-5.0mm |
+| Max Chars Per Line | Text wrapping | 45 | 20-100 |
 
-## Customization
+### Technical Details
 
-### Custom Fonts
+- **Python Compatibility**: Python 3.8 or higher
+- **Django Compatibility**: Django 3.2, 4.0, 4.1, 4.2
+- **Dependencies**: Automatically handled by pip
+- **PDF Engine**: ReportLab
+- **Character Encoding**: UTF-8
+- **Paper Size**: A4 (default)
 
-1. Place your TTF fonts in:
+## Development
+
+### Setting Up Development Environment
+
+1. Clone the repository:
+```bash
+git clone https://github.com/ibrahimroshdy/django-pdf-actions.git
+cd django-pdf-actions
 ```
-your_project/django_pdf_actions/static/django_pdf_actions/fonts/
+
+2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-2. They will automatically appear in the font selection dropdown in PDF Export Settings
+3. Install development dependencies:
+```bash
+pip install -e ".[dev]"
+```
 
-### Custom Styling
-
-You can extend the default styles by subclassing the export actions:
-
-```python
-from django_pdf_actions.actions import export_to_pdf_landscape
-
-class CustomPDFExport(export_to_pdf_landscape):
-    def get_pdf_style(self):
-        style = super().get_pdf_style()
-        # Add your custom styling here
-        return style
+4. Run tests:
+```bash
+pytest
 ```
 
 ## Documentation
 
-For full documentation, visit [ibrahimroshdy.github.io/django-pdf-actions](https://ibrahimroshdy.github.io/django-pdf-actions/).
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+For more detailed information, check out our documentation:
+- [Installation Guide](https://ibrahimroshdy.github.io/django-pdf-actions/installation/)
+- [Quick Start Guide](https://ibrahimroshdy.github.io/django-pdf-actions/quickstart/)
+- [Configuration Guide](https://ibrahimroshdy.github.io/django-pdf-actions/settings/)
+- [API Reference](https://ibrahimroshdy.github.io/django-pdf-actions/api/)
 
 ## License 
 
@@ -159,124 +232,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you are having issues, please let us know by:
 - Opening an issue in our [issue tracker](https://github.com/ibrahimroshdy/django-pdf-actions/issues)
 - Checking our [documentation](https://ibrahimroshdy.github.io/django-pdf-actions/)
-- Joining our [discussions](https://github.com/ibrahimroshdy/django-pdf-actions/discussions)
-pip install django-pdf-actions
-```
 
-### 2. Add to INSTALLED_APPS
+### Common Issues
 
-Add 'django_pdf_actions' to your INSTALLED_APPS setting:
+1. Font Installation
+   - Ensure your fonts directory exists at `static/assets/fonts/`
+   - Verify font files are in TTF format
+   - Check file permissions
 
-```python
-INSTALLED_APPS = [
-    ...
-    'django_pdf_actions',
-]
-```
+2. PDF Generation
+   - Ensure your model fields are properly defined in list_display
+   - Check that an active PDF Export Settings configuration exists
+   - Verify logo file paths if using custom logos
 
-### 3. Run Migrations
-
-```bash
-python manage.py migrate
-```
-
-### 4. Set up Fonts (Optional)
-
-Run the management command to set up default fonts:
-
-```bash
-python manage.py setup_fonts
-```
-
-### 5. Add to Your Models
-
-Import and use the PDF export actions in your admin.py:
-
-```python
-from django.contrib import admin
-from django_pdf_actions.actions import export_to_pdf_landscape, export_to_pdf_portrait
-from .models import YourModel
-
-@admin.register(YourModel)
-class YourModelAdmin(admin.ModelAdmin):
-    list_display = ('field1', 'field2', ...)  # Your fields here
-    actions = [export_to_pdf_landscape, export_to_pdf_portrait]
-```
-
-## Configuration
-
-### PDF Export Settings
-
-Access the Django admin interface to configure PDF export settings:
-
-1. Go to Admin > Django PDF > Export PDF Settings
-2. Create a new configuration with your desired settings:
-   - Page Layout (margins, items per page)
-   - Font Settings (font family, sizes)
-   - Visual Settings (colors, logo)
-   - Display Options (headers, footers)
-   - Table Settings (spacing, text wrapping)
-
-Only one configuration can be active at a time. The active configuration will be used for all PDF exports.
-
-### Available Settings
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Font Name | TTF font to use | DejaVuSans.ttf |
-| Header Font Size | Font size for headers | 10pt |
-| Body Font Size | Font size for content | 7pt |
-| Page Margin | Page margins in mm | 15mm |
-| Items Per Page | Number of rows per page | 10 |
-| Table Spacing | Cell padding in mm | 1.0mm |
-| Grid Line Width | Width of table lines | 0.25pt |
-| Colors | Header and grid colors | Configurable |
-
-## Customization
-
-### Custom Fonts
-
-1. Place your TTF fonts in:
-```
-your_project/django_pdf_actions/static/django_pdf_actions/fonts/
-```
-
-2. They will automatically appear in the font selection dropdown in PDF Export Settings
-
-### Custom Styling
-
-You can extend the default styles by subclassing the export actions:
-
-```python
-from django_pdf_actions.actions import export_to_pdf_landscape
-
-class CustomPDFExport(export_to_pdf_landscape):
-    def get_pdf_style(self):
-        style = super().get_pdf_style()
-        # Add your custom styling here
-        return style
-```
-
-## Documentation
-
-For full documentation, visit [ibrahimroshdy.github.io/django-pdf-actions](https://ibrahimroshdy.github.io/django-pdf-actions/).
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License 
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-If you are having issues, please let us know by:
-- Opening an issue in our [issue tracker](https://github.com/ibrahimroshdy/django-pdf-actions/issues)
-- Checking our [documentation](https://ibrahimroshdy.github.io/django-pdf-actions/)
