@@ -1,12 +1,22 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from model_utils.models import TimeStampedModel
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.conf import settings
+from django.forms import TextInput
 import os
+import re
+
+def validate_hex_color(value):
+    """Validate hex color format"""
+    if not re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', value):
+        raise ValidationError(
+            _('%(value)s is not a valid hex color. Format should be #RRGGBB or #RGB'),
+            params={'value': value},
+        )
 
 def get_available_fonts():
     """Get list of available fonts from the static/assets/fonts directory"""
@@ -25,6 +35,16 @@ def get_available_fonts():
         fonts.append(('DejaVuSans.ttf', 'DejaVu Sans (Default)'))
     
     return sorted(fonts, key=lambda x: x[1])
+
+class ColorField(models.CharField):
+    def __init__(self, *args, **kwargs):
+        kwargs['max_length'] = 7
+        kwargs['validators'] = [validate_hex_color]
+        super().__init__(*args, **kwargs)
+        
+    def formfield(self, **kwargs):
+        kwargs['widget'] = TextInput(attrs={'type': 'color'})
+        return super().formfield(**kwargs)
 
 # Define the ExportPDFSettings model
 class ExportPDFSettings(TimeStampedModel):
@@ -74,13 +94,11 @@ class ExportPDFSettings(TimeStampedModel):
         null=True,
         blank=True
     )
-    header_background_color = models.CharField(
-        max_length=7,
+    header_background_color = ColorField(
         default='#F0F0F0',
         help_text=_("Header background color (hex format, e.g. #F0F0F0)")
     )
-    grid_line_color = models.CharField(
-        max_length=7,
+    grid_line_color = ColorField(
         default='#000000',
         help_text=_("Grid line color (hex format, e.g. #000000)")
     )
