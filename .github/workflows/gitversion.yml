@@ -76,19 +76,12 @@ jobs:
     - name: Update version in pyproject.toml
       run: |
         VERSION="${{ steps.gitversion.outputs.semVer }}"
-        git config --local user.name "${{ github.actor }}"
-        git config --local user.email "${{ github.actor }}@users.noreply.github.com"
-        git config --local url."https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
         sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
-        git add pyproject.toml
-        git commit -m "Update version to $VERSION [skip ci]"
-        git push
       
     - name: Create version tag
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/'))
       run: |
-        git config --local user.name "${{ github.actor }}"
-        git config --local user.email "${{ github.actor }}@users.noreply.github.com"
-        git config --local url."https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+        git config user.name "${{ github.actor }}"
+        git config user.email "${{ github.actor }}@users.noreply.github.com"
         git tag -a v${{ steps.gitversion.outputs.semVer }} -m "Release v${{ steps.gitversion.outputs.semVer }}"
         git push origin v${{ steps.gitversion.outputs.semVer }} 
