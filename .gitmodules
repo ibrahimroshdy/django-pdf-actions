@@ -1,0 +1,3 @@
+[submodule "django-pdf-actions"]
+	path = django-pdf-actions
+	url = https://github.com/ibrahimroshdy/django-pdf-actions.git
