@@ -16,7 +16,7 @@ A powerful Django application that adds PDF export capabilities to your Django a
 - Batch export multiple records at once
 - Smart pagination and table layouts
 
-### 🎨 Design & Customization 
+### 🎨 Design & Customization  
 - Full control over fonts, colors, margins, and spacing
 - Customizable headers and footers
 - Company logo integration
