@@ -15,7 +15,7 @@ Before installing Django PDF Export, ensure you have:
 - Django 3.2 or higher
 - pip (Python package installer)
 
-## Features 
+## Features
 
 ### 📊 Export Capabilities
 - Export any Django model data to PDF directly from the admin interface
