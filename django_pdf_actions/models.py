@@ -9,8 +9,8 @@ from django.conf import settings
 import os
 
 def get_available_fonts():
-    """Get list of available fonts from the static fonts directory"""
-    fonts_dir = os.path.join(settings.BASE_DIR, 'django_pdf_actions/static/django_pdf_actions/fonts')
+    """Get list of available fonts from the static/assets/fonts directory"""
+    fonts_dir = os.path.join(settings.BASE_DIR, 'static', 'assets', 'fonts')
     fonts = []
     
     if os.path.exists(fonts_dir):

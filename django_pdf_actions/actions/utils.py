@@ -31,7 +31,7 @@ def setup_font(pdf_settings):
     
     # Try to get font from settings
     if pdf_settings and pdf_settings.font_name:
-        font_path = os.path.join(settings.BASE_DIR, 'django_pdf_actions/static/django_pdf_actions/fonts', pdf_settings.font_name)
+        font_path = os.path.join(settings.BASE_DIR, 'static', 'assets', 'fonts', pdf_settings.font_name)
         if os.path.exists(font_path):
             try:
                 pdfmetrics.registerFont(TTFont(font_name, font_path, 'utf-8'))
@@ -40,7 +40,7 @@ def setup_font(pdf_settings):
                 print(f"Error loading font {pdf_settings.font_name}: {str(e)}")
     
     # Try default font
-    default_font = os.path.join(settings.BASE_DIR, 'django_pdf_actions/static/django_pdf_actions/fonts/DejaVuSans.ttf')
+    default_font = os.path.join(settings.BASE_DIR, 'static', 'assets', 'fonts', 'DejaVuSans.ttf')
     if os.path.exists(default_font):
         try:
             pdfmetrics.registerFont(TTFont(font_name, default_font, 'utf-8'))
