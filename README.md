@@ -8,7 +8,7 @@
 
 A powerful Django application that adds PDF export capabilities to your Django admin interface. Export your model data to beautifully formatted PDF documents with customizable layouts, fonts, and styling.
 
-## Features
+## Features 
 
 ### 📊 Export Capabilities
 - Export any Django model data to PDF directly from the admin interface
