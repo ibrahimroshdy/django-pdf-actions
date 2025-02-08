@@ -10,7 +10,7 @@ A powerful Django application that adds PDF export capabilities to your Django a
 
 ## Features
 
-### 📊 Export Capabilities 
+### 📊 Export Capabilities
 - Export any Django model data to PDF directly from the admin interface
 - Support for both portrait and landscape orientations
 - Batch export multiple records at once
