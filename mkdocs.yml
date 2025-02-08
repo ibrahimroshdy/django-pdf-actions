@@ -1,0 +1,116 @@
+# mkdocs.yml - Documentation Configuration
+
+# Site Information
+site_name: Django PDF Actions
+site_description: A powerful Django application that adds PDF export capabilities to your Django admin interface. Export your model data to beautifully formatted PDF documents with customizable layouts, fonts, and styling.
+site_author: Ibrahim Roshdy
+
+# Copyright Information
+copyright: Copyright &copy; 2025 Ibrahim Roshdy
+
+# Repository Information
+repo_url: https://github.com/ibrahimroshdy/django-pdf-actions
+repo_name: ibrahimroshdy/django-pdf-actions
+
+# Edit Button Configuration
+edit_uri: ""
+
+# Plugins Configuration
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          import:
+            - https://docs.python.org/3/objects.inv
+            - https://docs.djangoproject.com/en/stable/_objects/
+          paths: [ django_pdf_actions ]
+          options:
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            filters: [ "!^_" ]
+            heading_level: 4
+            inherited_members: true
+            merge_init_into_class: true
+            separate_signature: true
+            show_root_heading: true
+            show_root_full_path: true
+            show_signature_annotations: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+            summary: true
+
+# Theme Configuration
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to system preference
+
+# Navigation Configuration
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quick Start: quickstart.md
+      - Settings: settings.md
+  - API Reference:
+      - Actions: api/actions.md
+      - Models: api/models.md
+      - Utils: api/utils.md
+
+# Markdown Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+      separator: "_"

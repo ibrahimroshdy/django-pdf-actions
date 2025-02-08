@@ -1,0 +1,7 @@
+include LICENSE
+include README.md
+recursive-include django_pdf_actions/static *
+recursive-include django_pdf_actions/templates *
+recursive-include docs *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
