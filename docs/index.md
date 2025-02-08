@@ -15,6 +15,12 @@ Django PDF Export adds PDF export capabilities to your Django admin interface wi
 - Table styling and formatting
 - And much more...
 
+## Package Stats
+
+[![PyPI Downloads](https://img.shields.io/pypi/dm/django-pdf-actions.svg)](https://pypistats.org/packages/django-pdf-actions)
+
+View detailed download statistics on [PyPI Stats](https://pypistats.org/packages/django-pdf-actions).
+
 ## Key Features
 
 ### 📊 Export Capabilities
