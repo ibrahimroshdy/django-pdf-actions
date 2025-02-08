@@ -26,33 +26,54 @@ class Command(BaseCommand):
 
     def download_and_process_font(self, url, target_path, font_name):
         """Download and process font file, handling both direct TTF files and zip archives."""
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            # Download the file
-            response = requests.get(url, stream=True)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Connection': 'keep-alive',
+        }
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as temp_file:
+            # Download the file with browser headers
+            response = requests.get(url, stream=True, headers=headers)
             response.raise_for_status()
+            
+            # Check content type for zip
+            content_type = response.headers.get('content-type', '').lower()
+            is_zip = 'zip' in content_type or url.lower().endswith('.zip')
+            
+            # Save the downloaded content
             shutil.copyfileobj(response.raw, temp_file)
             temp_file.flush()
-
-            # Check if it's a zip file
-            if zipfile.is_zipfile(temp_file.name):
-                with zipfile.ZipFile(temp_file.name) as zip_ref:
-                    # List all TTF files in the zip
-                    ttf_files = [f for f in zip_ref.namelist() if f.endswith('.ttf')]
-                    if not ttf_files:
-                        raise Exception("No TTF files found in the zip archive")
-                    
-                    # For DejaVu Sans, find the specific file we want
-                    if font_name == 'DejaVuSans.ttf':
-                        target_ttf = next(f for f in ttf_files if 'DejaVuSans.ttf' in f)
-                    else:
-                        # For other fonts, use the first TTF file or match the name
-                        target_ttf = next((f for f in ttf_files if font_name in f), ttf_files[0])
-                    
-                    # Extract only the needed TTF file
-                    with zip_ref.open(target_ttf) as source, open(target_path, 'wb') as target:
-                        shutil.copyfileobj(source, target)
-            else:
-                # Direct TTF file, just move it to the target location
+            
+            try:
+                # Try to open as zip even if not detected as zip (some servers don't set content-type)
+                if is_zip or zipfile.is_zipfile(temp_file.name):
+                    with zipfile.ZipFile(temp_file.name) as zip_ref:
+                        # List all TTF files in the zip
+                        ttf_files = [f for f in zip_ref.namelist() if f.lower().endswith('.ttf')]
+                        if not ttf_files:
+                            raise Exception("No TTF files found in the zip archive")
+                        
+                        # For DejaVu Sans, find the specific file we want
+                        if font_name.lower() == 'dejavusans.ttf':
+                            target_ttf = next(f for f in ttf_files if 'DejaVuSans.ttf' in f)
+                        else:
+                            # For other fonts, try to match the name or use the first TTF
+                            target_ttf = next(
+                                (f for f in ttf_files if font_name.lower() in f.lower()),
+                                ttf_files[0]
+                            )
+                        
+                        # Extract only the needed TTF file
+                        with zip_ref.open(target_ttf) as source, open(target_path, 'wb') as target:
+                            shutil.copyfileobj(source, target)
+                            self.stdout.write(f"Extracted {target_ttf} from zip to {target_path}")
+                else:
+                    # Direct TTF file, just move it to the target location
+                    shutil.move(temp_file.name, target_path)
+            except zipfile.BadZipFile:
+                # If not a valid zip, assume it's a direct TTF
                 shutil.move(temp_file.name, target_path)
 
     def handle(self, *args, **options):
