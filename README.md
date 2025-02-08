@@ -8,7 +8,7 @@
 
 A Django application that adds PDF export capabilities to your Django admin interface. Export your model data to PDF documents with customizable layouts and styling.
 
-## Prerequisites
+## Prerequisites 
 
 Before installing Django PDF Export, ensure you have:
 - Python 3.8 or higher
