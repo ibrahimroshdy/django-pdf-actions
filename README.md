@@ -28,7 +28,7 @@ A powerful Django application that adds PDF export capabilities to your Django a
 - Arabic text rendering
 - Multi-language content in the same document
 
-### ⚡ Developer Experience 
+### ⚡ Developer Experience  
 - Zero-configuration default settings
 - Simple one-line integration with Django admin
 - Extensible architecture for custom requirements
