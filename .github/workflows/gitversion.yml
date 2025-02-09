@@ -1,4 +1,4 @@
-name: GitVersion
+name: Version Management
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
       - develop
 
 permissions:
-  contents: write  # This gives permission to create and push tags
+  contents: write
   pull-requests: read
 
 jobs:
@@ -24,64 +24,97 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Required for GitVersion
-        token: ${{ secrets.GITHUB_TOKEN }}  # Use the automatic token
-        
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.10.2
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        versionSpec: '5.x'
-        
-    - name: Determine Version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v0.10.2
-      with:
-        useConfigFile: true
-        configFilePath: .github/GitVersion.yml
-        
-    - name: Display GitVersion outputs
+        python-version: '3.x'
+
+    - name: Install dependencies
       run: |
-        echo "Major: ${{ steps.gitversion.outputs.major }}"
-        echo "Minor: ${{ steps.gitversion.outputs.minor }}"
-        echo "Patch: ${{ steps.gitversion.outputs.patch }}"
-        echo "PreReleaseTag: ${{ steps.gitversion.outputs.preReleaseTag }}"
-        echo "PreReleaseLabel: ${{ steps.gitversion.outputs.preReleaseLabel }}"
-        echo "PreReleaseNumber: ${{ steps.gitversion.outputs.preReleaseNumber }}"
-        echo "WeightedPreReleaseNumber: ${{ steps.gitversion.outputs.weightedPreReleaseNumber }}"
-        echo "BuildMetaData: ${{ steps.gitversion.outputs.buildMetaData }}"
-        echo "BuildMetaDataPadded: ${{ steps.gitversion.outputs.buildMetaDataPadded }}"
-        echo "FullBuildMetaData: ${{ steps.gitversion.outputs.fullBuildMetaData }}"
-        echo "MajorMinorPatch: ${{ steps.gitversion.outputs.majorMinorPatch }}"
-        echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
-        echo "LegacySemVer: ${{ steps.gitversion.outputs.legacySemVer }}"
-        echo "LegacySemVerPadded: ${{ steps.gitversion.outputs.legacySemVerPadded }}"
-        echo "AssemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}"
-        echo "AssemblySemFileVer: ${{ steps.gitversion.outputs.assemblySemFileVer }}"
-        echo "FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
-        echo "InformationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}"
-        echo "BranchName: ${{ steps.gitversion.outputs.branchName }}"
-        echo "EscapedBranchName: ${{ steps.gitversion.outputs.escapedBranchName }}"
-        echo "Sha: ${{ steps.gitversion.outputs.sha }}"
-        echo "ShortSha: ${{ steps.gitversion.outputs.shortSha }}"
-        echo "NuGetVersionV2: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
-        echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}"
-        echo "NuGetPreReleaseTagV2: ${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}"
-        echo "NuGetPreReleaseTag: ${{ steps.gitversion.outputs.nuGetPreReleaseTag }}"
-        echo "VersionSourceSha: ${{ steps.gitversion.outputs.versionSourceSha }}"
-        echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.commitsSinceVersionSource }}"
-        echo "CommitsSinceVersionSourcePadded: ${{ steps.gitversion.outputs.commitsSinceVersionSourcePadded }}"
-        echo "UncommittedChanges: ${{ steps.gitversion.outputs.uncommittedChanges }}"
-        echo "CommitDate: ${{ steps.gitversion.outputs.commitDate }}"
-        
-    - name: Update version in pyproject.toml
+        python -m pip install --upgrade pip
+        pip install tomli tomli-w
+
+    - name: Check and update version
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      id: check_version
       run: |
-        VERSION="${{ steps.gitversion.outputs.semVer }}"
-        sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
+        # Python script to handle version management
+        VERSION=$(python -c "
+        import tomli, tomli_w, subprocess
+        
+        def get_latest_tag_version():
+            try:
+                result = subprocess.run(['git', 'describe', '--tags', '--abbrev=0'], 
+                                     capture_output=True, text=True)
+                if result.returncode == 0:
+                    return result.stdout.strip().lstrip('v')
+                return None
+            except:
+                return None
+        
+        def version_to_tuple(version):
+            return tuple(map(int, version.split('.')))
+        
+        # Read current version from pyproject.toml
+        with open('pyproject.toml', 'rb') as f:
+            data = tomli.load(f)
+        current = data['tool']['poetry']['version']
+        
+        # Get latest tag version
+        latest_tag = get_latest_tag_version()
+        
+        # Compare versions if tag exists
+        if latest_tag:
+            current_tuple = version_to_tuple(current)
+            tag_tuple = version_to_tuple(latest_tag)
+            
+            # If pyproject version is greater than latest tag, respect it
+            if current_tuple > tag_tuple:
+                print(current)
+                exit(0)
+        
+        # Otherwise increment the patch version
+        major, minor, patch = version_to_tuple(current)
+        new_version = f'{major}.{minor}.{patch + 1}'
+        
+        # Update pyproject.toml
+        data['tool']['poetry']['version'] = new_version
+        with open('pyproject.toml', 'wb') as f:
+            tomli_w.dump(data, f)
+        
+        print(new_version)
+        ")
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Version set to: $VERSION"
+
+    - name: Commit version update
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        # Check if pyproject.toml was modified
+        if git diff --quiet pyproject.toml; then
+          echo "No version changes to commit"
+          exit 0
+        fi
+        
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add pyproject.toml
+        git commit -m "chore: Bump version to ${{ env.VERSION }} [skip ci]"
+        git push
       
     - name: Create version tag
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/'))
       run: |
-        git config user.name "${{ github.actor }}"
-        git config user.email "${{ github.actor }}@users.noreply.github.com"
-        git tag -a v${{ steps.gitversion.outputs.semVer }} -m "Release v${{ steps.gitversion.outputs.semVer }}"
-        git push origin v${{ steps.gitversion.outputs.semVer }} 
+        VERSION=$(python -c "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['tool']['poetry']['version'])")
+        
+        # Check if tag already exists
+        if ! git rev-parse "v$VERSION" >/dev/null 2>&1; then
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+          echo "Created and pushed tag v$VERSION"
+        else
+          echo "Tag v$VERSION already exists"
+        fi 
