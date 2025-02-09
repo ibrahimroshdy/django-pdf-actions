@@ -1,11 +1,14 @@
-# Django PDF Export 
+# Django PDF Actions
 
 [![PyPI version](https://img.shields.io/pypi/v/django-pdf-actions.svg?cache=no)](https://pypi.org/project/django-pdf-actions/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/django-pdf-actions.svg)](https://pypi.org/project/django-pdf-actions/)
 [![Django Versions](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2-green.svg)](https://pypi.org/project/django-pdf-actions/)
 [![Documentation](https://img.shields.io/badge/docs-github_pages-blue.svg)](https://ibrahimroshdy.github.io/django-pdf-actions/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Development Status](https://img.shields.io/badge/status-beta-yellow.svg)](https://pypi.org/project/django-pdf-actions/)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ibrahimroshdy/django-pdf-actions.svg)](https://github.com/ibrahimroshdy/django-pdf-actions/commits/main)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/django-pdf-actions.svg)](https://pypistats.org/packages/django-pdf-actions)
+[![Total Downloads](https://static.pepy.tech/badge/django-pdf-actions)](https://pepy.tech/project/django-pdf-actions)
 
 A Django application that adds PDF export capabilities to your Django admin interface. Export your model data to PDF documents with customizable layouts and styling.
 
