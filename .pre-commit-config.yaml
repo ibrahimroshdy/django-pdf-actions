@@ -1,0 +1,14 @@
+repos:
+  - repo: local
+    hooks:
+      - id: check-gitversion
+        name: Check GitVersion installation
+        entry: bash -c 'command -v gitversion >/dev/null 2>&1 || { echo >&2 "GitVersion is required but not installed. Install with: dotnet tool install --global GitVersion.Tool"; exit 1; }'
+        language: system
+        pass_filenames: false
+      - id: check-version-match
+        name: Check version matches GitVersion
+        entry: python scripts/check_version_bump.py
+        language: system
+        files: ^pyproject\.toml$
+        pass_filenames: false 
