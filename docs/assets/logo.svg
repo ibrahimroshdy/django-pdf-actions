@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="#092E20"/>
+  
+  <!-- Centered Group -->
+  <g transform="translate(56, 96)">
+    <!-- PDF Document Icon -->
+    <path d="M356 48H196c-11.046 0-20 8.954-20 20v216c0 11.046 8.954 20 20 20h160c11.046 0 20-8.954 20-20V68c0-11.046-8.954-20-20-20z" fill="#FFFFFF"/>
+    
+    <!-- PDF Text -->
+    <text x="256" y="160" font-family="Inter, -apple-system, sans-serif" font-size="72" font-weight="300" letter-spacing="2" fill="#092E20" text-anchor="middle">
+      PDF
+    </text>
+    
+    <!-- Django Snake -->
+    <path d="M176 216c0 0 32-32 80-32s80 32 80 32" stroke="#44B78B" stroke-width="12" stroke-linecap="round"/>
+    
+    <!-- Action Arrow -->
+    <path d="M276 248l40 40m0 0l-40 40m40-40H156" stroke="#44B78B" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg> 

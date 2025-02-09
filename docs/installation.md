@@ -1,5 +1,9 @@
 # Installation Guide
 
+<p align="center">
+  <img src="assets/logo.svg" alt="Django PDF Actions Logo" width="200" height="200">
+</p>
+
 ## Prerequisites
 
 Before installing Django PDF Export, ensure you have:
@@ -78,8 +82,6 @@ python manage.py setup_fonts --font-url "https://github.com/google/fonts/raw/mai
 # Example: Installing Cairo font for Arabic support
 python manage.py setup_fonts --font-url "https://github.com/google/fonts/raw/main/ofl/cairo/Cairo-Regular.ttf" --font-name "Cairo-Regular.ttf"
 ```
-
-The fonts will be automatically available in your PDF Export Settings.
 
 ### Font Directory Structure
 

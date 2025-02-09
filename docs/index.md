@@ -1,92 +1,58 @@
-# Django PDF Export
+# Django PDF Actions
 
-A powerful Django application that adds PDF export capabilities to your Django admin interface. Export your model data to beautifully formatted PDF documents with customizable layouts, fonts, and styling.
+<p align="center">
+  <img src="assets/logo.svg" alt="Django PDF Actions Logo" width="200" height="200">
+</p>
+
+A powerful Django application for generating PDF exports from the Django admin interface with advanced customization options.
+
+[![PyPI version](https://badge.fury.io/py/django-pdf-actions.svg)](https://badge.fury.io/py/django-pdf-actions)
+[![Python Versions](https://img.shields.io/pypi/pyversions/django-pdf-actions.svg)](https://pypi.org/project/django-pdf-actions/)
+[![Django Versions](https://img.shields.io/pypi/djversions/django-pdf-actions.svg)](https://pypi.org/project/django-pdf-actions/)
+[![License](https://img.shields.io/pypi/l/django-pdf-actions.svg)](https://github.com/ibrahimroshdy/django-pdf-actions/blob/main/LICENSE)
+[![Downloads](https://pepy.tech/badge/django-pdf-actions/month)](https://pepy.tech/project/django-pdf-actions)
+[![Total Downloads](https://pepy.tech/badge/django-pdf-actions)](https://pepy.tech/project/django-pdf-actions)
 
 ## Overview
 
-Django PDF Export adds PDF export capabilities to your Django admin interface with support for:
+Django PDF Actions seamlessly integrates PDF export functionality into your Django admin interface. With just a few lines of code, you can add professional PDF export capabilities to any model in your Django application.
 
-- Multiple orientations (portrait and landscape)
-- Customizable fonts and styling
-- Configurable layouts
-- Unicode text support (including Arabic)
-- Header and footer customization
-- Logo integration
-- Table styling and formatting
-- And much more...
+### Key Features
 
-## Package Stats
+- **Easy Integration**: Add PDF export actions to any model with minimal configuration
+- **Customizable Layout**: Control margins, fonts, colors, and page settings
+- **Multiple Orientations**: Export in both portrait and landscape formats
+- **Advanced Styling**: Custom headers, footers, watermarks, and company branding
+- **Performance Optimized**: Efficient handling of large datasets with pagination
+- **Security Features**: Access control, encryption, and secure file handling
+- **Internationalization**: Support for multiple languages and Unicode fonts
+- **Responsive Design**: Automatic column sizing and content wrapping
 
-[![PyPI Downloads](https://img.shields.io/pypi/dm/django-pdf-actions.svg)](https://pypistats.org/packages/django-pdf-actions)
+## Quick Example
 
-View detailed download statistics on [PyPI Stats](https://pypistats.org/packages/django-pdf-actions).
+```python
+from django.contrib import admin
+from django_pdf_actions.actions import export_to_pdf_landscape, export_to_pdf_portrait
+from .models import YourModel
 
-## Key Features
+@admin.register(YourModel)
+class YourModelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'email', 'date_joined')
+    actions = [export_to_pdf_landscape, export_to_pdf_portrait]
+```
 
-### 📊 Export Capabilities
-- Export any Django model data to PDF directly from the admin interface
-- Support for both portrait and landscape orientations
-- Batch export multiple records at once
-- Smart pagination and table layouts
+## Documentation
 
-### 🎨 Design & Customization
-- Full control over fonts, colors, margins, and spacing
-- Customizable headers and footers
-- Company logo integration
-- Professional table styling with grid lines and backgrounds
-
-### 🌍 International Support
-- Complete Unicode compatibility
-- Right-to-left (RTL) text support
-- Arabic text rendering
-- Multi-language content in the same document
-
-### ⚡ Developer Experience
-- Zero-configuration default settings
-- Simple one-line integration with Django admin
-- Extensible architecture for custom requirements
-- Comprehensive documentation and examples
+### Getting Started
+1. [Installation Guide](installation.md)
+2. [Quick Start Guide](quickstart.md)
+3. [Settings Reference](settings.md)
 
 ## Requirements
 
 - Python 3.8+
 - Django 3.2+
-- ReportLab 4.0+
-- django-model-utils 5.0+
-
-## Quick Installation
-
-```bash
-pip install django-pdf-actions
-```
-
-Add to your `INSTALLED_APPS`:
-
-```python
-INSTALLED_APPS = [
-    ...
-    'django_pdf_actions',
-]
-```
-
-Run migrations:
-
-```bash
-python manage.py migrate
-```
-
-## Basic Usage
-
-Add PDF export actions to your admin class:
-
-```python
-from django.contrib import admin
-from django_pdf_actions.actions import export_to_pdf_landscape, export_to_pdf_portrait
-
-@admin.register(YourModel)
-class YourModelAdmin(admin.ModelAdmin):
-    actions = [export_to_pdf_landscape, export_to_pdf_portrait]
-```
+- WeasyPrint dependencies
 
 ## Support
 
@@ -95,4 +61,4 @@ class YourModelAdmin(admin.ModelAdmin):
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/ibrahimroshdy/django-pdf-actions/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

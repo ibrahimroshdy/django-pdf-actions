@@ -1,5 +1,9 @@
 # Settings Reference
 
+<p align="center">
+  <img src="assets/logo.svg" alt="Django PDF Actions Logo" width="200" height="200">
+</p>
+
 ## PDF Export Settings
 
 Django PDF Export provides a comprehensive set of settings that can be configured through the Django admin interface.

@@ -1,5 +1,9 @@
 # Django PDF Actions
 
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="Django PDF Actions Logo" width="200" height="200">
+</p>
+
 [![PyPI version](https://img.shields.io/pypi/v/django-pdf-actions.svg?cache=no)](https://pypi.org/project/django-pdf-actions/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/django-pdf-actions.svg)](https://pypi.org/project/django-pdf-actions/)
 [![Django Versions](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2-green.svg)](https://pypi.org/project/django-pdf-actions/)
@@ -109,14 +113,14 @@ To use custom fonts:
    mkdir -p static/assets/fonts
    ```
 2. Install the default font (DejaVu Sans):
-   ```bash
-   python manage.py setup_fonts
-   ```
+```bash
+python manage.py setup_fonts
+```
 3. Add custom fonts (optional):
    ```bash
    # Example: Installing Roboto font
    python manage.py setup_fonts --font-url "https://github.com/google/fonts/raw/main/apache/roboto/Roboto-Regular.ttf" --font-name "Roboto-Regular.ttf"
-   
+
    # Example: Installing Cairo font for Arabic support
    python manage.py setup_fonts --font-url "https://github.com/google/fonts/raw/main/ofl/cairo/Cairo-Regular.ttf" --font-name "Cairo-Regular.ttf"
    ```
