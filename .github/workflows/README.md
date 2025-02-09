@@ -37,9 +37,3 @@ Some workflows may depend on others:
 2. When a new version is tagged, it can trigger `publish.yml`
 3. Documentation updates via `pages.yml` run independently
 4. Tests run on PRs and pushes to ensure quality
-
-## Notes
-- Most workflows require specific secrets to be set in the repository settings
-- The version management workflow uses `[skip ci]` in commit messages to avoid loops
-- Test and documentation workflows can run in parallel
-- Publishing only happens for proper releases 
