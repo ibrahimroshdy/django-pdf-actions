@@ -2,6 +2,8 @@
 
 This directory contains the GitHub Actions workflows for the django-pdf-actions package. Here's what each workflow does:
 
+> **Note**: This package is distributed via [PyPI](https://pypi.org/project/django-pdf-actions/). While the source code is hosted on GitHub, package installation should be done via pip: `pip install django-pdf-actions`
+
 ## Version Management (`gitversion.yml`)
 Handles automatic version management for the package:
 - Runs on pushes to `main`, `develop`, `releases/*`, and `hotfix/*` branches
