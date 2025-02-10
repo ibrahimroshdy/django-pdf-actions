@@ -46,6 +46,14 @@ django-model-utils = ">=4.0.0"
 pre-commit = "^3.5.0"
 tomli = "^2.0.1"
 
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.5.0"
+mkdocs-material = "^9.0.0"
+mkdocstrings = {extras = ["python"], version = "^0.24.0"}
+
 [build-system]
 requires = [
     "poetry-core",
