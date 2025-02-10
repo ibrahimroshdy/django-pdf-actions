@@ -93,7 +93,7 @@ Add 'django_pdf_actions' to your INSTALLED_APPS setting:
 ```python
 INSTALLED_APPS = [
     ...
-    'django_pdf_actions',
+    'django_pdf_actions'
 ]
 ```
 
@@ -229,7 +229,6 @@ For more detailed information, check out our documentation:
 - [Installation Guide](https://ibrahimroshdy.github.io/django-pdf-actions/installation/)
 - [Quick Start Guide](https://ibrahimroshdy.github.io/django-pdf-actions/quickstart/)
 - [Configuration Guide](https://ibrahimroshdy.github.io/django-pdf-actions/settings/)
-- [API Reference](https://ibrahimroshdy.github.io/django-pdf-actions/api/)
 
 ## License 
 
