@@ -89,10 +89,6 @@ nav:
       - Installation: installation.md
       - Quick Start: quickstart.md
       - Settings: settings.md
-  - API Reference:
-      - Actions: api/actions.md
-      - Models: api/models.md
-      - Utils: api/utils.md
 
 # Markdown Extensions
 markdown_extensions:
