@@ -7,19 +7,22 @@ import os
 
 @admin.register(models.ExportPDFSettings)
 class PdfAdmin(admin.ModelAdmin):
-    list_display = ('title', 'active', 'font_name_display', 'logo_display', 'items_per_page', 'modified', 'header_background_color_preview', 'grid_line_color_preview')
+    list_display = ('title', 'active', 'font_name_display', 'logo_display', 'items_per_page', 'modified',
+                    'header_background_color_preview', 'grid_line_color_preview')
     list_filter = ('active', 'show_header', 'show_logo', 'show_export_time', 'font_name')
     search_fields = ('title',)
-    readonly_fields = ('modified', 'created', 'header_background_color_preview', 'grid_line_color_preview', 'logo_display')
-    
+    readonly_fields = (
+    'modified', 'created', 'header_background_color_preview', 'grid_line_color_preview', 'logo_display')
+
     def font_name_display(self, obj):
         font_name = os.path.splitext(obj.font_name)[0]  # Remove .ttf extension
         return format_html(
             '<span style="font-family: monospace;">{}</span>',
             font_name
         )
+
     font_name_display.short_description = 'Font'
-    
+
     def logo_display(self, obj):
         if obj.logo:
             return format_html(
@@ -28,6 +31,7 @@ class PdfAdmin(admin.ModelAdmin):
                 os.path.basename(obj.logo.name)
             )
         return "No logo"
+
     logo_display.short_description = 'Logo'
 
     def header_background_color_preview(self, obj):
@@ -36,6 +40,7 @@ class PdfAdmin(admin.ModelAdmin):
             obj.header_background_color,
             obj.header_background_color
         )
+
     header_background_color_preview.short_description = 'Header Background'
 
     def grid_line_color_preview(self, obj):
@@ -44,8 +49,9 @@ class PdfAdmin(admin.ModelAdmin):
             obj.grid_line_color,
             obj.grid_line_color
         )
+
     grid_line_color_preview.short_description = 'Grid Line Color'
-    
+
     fieldsets = (
         ('General', {
             'fields': ('title', 'active')
@@ -58,8 +64,8 @@ class PdfAdmin(admin.ModelAdmin):
         }),
         ('Visual Settings', {
             'fields': (
-                ('logo', 'logo_display'), 
-                ('header_background_color', 'header_background_color_preview'), 
+                ('logo', 'logo_display'),
+                ('header_background_color', 'header_background_color_preview'),
                 ('grid_line_color', 'grid_line_color_preview'),
                 'grid_line_width'
             )
@@ -78,7 +84,7 @@ class PdfAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
-    
+
     actions = [export_to_pdf_landscape, export_to_pdf_portrait]
 
     def save_model(self, request, obj, form, change):

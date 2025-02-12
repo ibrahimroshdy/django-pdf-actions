@@ -1,13 +1,15 @@
 """Utility functions for PDF export actions"""
 
 import os
+
 from django.conf import settings
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import Paragraph, Table, TableStyle
+from reportlab.platypus import Table, TableStyle
+
 from ..models import ExportPDFSettings
 
 
@@ -22,13 +24,13 @@ def get_active_settings():
 def hex_to_rgb(hex_color):
     """Convert hex color to RGB tuple"""
     hex_color = hex_color.lstrip('#')
-    return tuple(int(hex_color[i:i+2], 16)/255.0 for i in (0, 2, 4))
+    return tuple(int(hex_color[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
 
 
 def setup_font(pdf_settings):
     """Setup and register font"""
     font_name = 'PDF_Font'
-    
+
     # Try to get font from settings
     if pdf_settings and pdf_settings.font_name:
         font_path = os.path.join(settings.BASE_DIR, 'static', 'assets', 'fonts', pdf_settings.font_name)
@@ -38,7 +40,7 @@ def setup_font(pdf_settings):
                 return font_name
             except Exception as e:
                 print(f"Error loading font {pdf_settings.font_name}: {str(e)}")
-    
+
     # Try default font
     default_font = os.path.join(settings.BASE_DIR, 'static', 'assets', 'fonts', 'DejaVuSans.ttf')
     if os.path.exists(default_font):
@@ -47,7 +49,7 @@ def setup_font(pdf_settings):
             return font_name
         except Exception as e:
             print(f"Error loading default font: {str(e)}")
-    
+
     # If all else fails, use Helvetica (built into ReportLab)
     return 'Helvetica'
 
@@ -66,7 +68,7 @@ def create_table_style(pdf_settings, font_name, header_bg_color, grid_color):
     body_font_size = pdf_settings.body_font_size if pdf_settings else 8
     grid_line_width = pdf_settings.grid_line_width if pdf_settings else 0.25
     table_spacing = pdf_settings.table_spacing if pdf_settings else 1.5
-    
+
     return TableStyle([
         ('FONT', (0, 0), (-1, -1), font_name, body_font_size),  # Body font
         ('FONT', (0, 0), (-1, 0), font_name, header_font_size),  # Header font
@@ -88,13 +90,13 @@ def create_table_style(pdf_settings, font_name, header_bg_color, grid_color):
 def create_header_style(pdf_settings, font_name, is_header=False):
     """Create style for column headers and body text"""
     styles = getSampleStyleSheet()
-    
+
     # Use proper font sizes from settings
     if pdf_settings:
         font_size = pdf_settings.header_font_size if is_header else pdf_settings.body_font_size
     else:
         font_size = 12 if is_header else 8
-    
+
     return ParagraphStyle(
         'CustomHeader' if is_header else 'CustomBody',
         parent=styles['Normal'],
@@ -112,7 +114,7 @@ def calculate_column_widths(data, table_width, font_name, font_size):
     """Calculate optimal column widths based on content"""
     num_cols = len(data[0])
     max_widths = [0] * num_cols
-    
+
     # Find maximum content width for each column
     for row in data:
         for i, cell in enumerate(row):
@@ -121,11 +123,11 @@ def calculate_column_widths(data, table_width, font_name, font_size):
             multiplier = 1.2 if row == data[0] else 1.0
             width = len(content) * font_size * 0.6 * multiplier
             max_widths[i] = max(max_widths[i], width)
-    
+
     # Ensure minimum width for each column
     min_width = table_width * 0.05  # 5% of table width
     max_widths = [max(width, min_width) for width in max_widths]
-    
+
     # Normalize widths to fit table_width
     total_width = sum(max_widths)
     return [width / total_width * table_width for width in max_widths]
@@ -182,4 +184,4 @@ def draw_logo(p, logo_file, canvas_width, canvas_height):
         logo_x = canvas_width - logo_width - logo_offset
         logo_y = canvas_height - logo_height - logo_offset
         logo = Image(logo_file, width=logo_width, height=logo_height)
-        logo.drawOn(p, logo_x, logo_y) 
+        logo.drawOn(p, logo_x, logo_y)

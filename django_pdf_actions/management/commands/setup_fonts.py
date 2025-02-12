@@ -2,11 +2,12 @@
 
 import os
 import shutil
-import zipfile
 import tempfile
-from django.core.management.base import BaseCommand
-from django.conf import settings
+import zipfile
+
 import requests
+from django.conf import settings
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
@@ -37,15 +38,15 @@ class Command(BaseCommand):
             # Download the file with browser headers
             response = requests.get(url, stream=True, headers=headers)
             response.raise_for_status()
-            
+
             # Check content type for zip
             content_type = response.headers.get('content-type', '').lower()
             is_zip = 'zip' in content_type or url.lower().endswith('.zip')
-            
+
             # Save the downloaded content
             shutil.copyfileobj(response.raw, temp_file)
             temp_file.flush()
-            
+
             try:
                 # Try to open as zip even if not detected as zip (some servers don't set content-type)
                 if is_zip or zipfile.is_zipfile(temp_file.name):
@@ -54,7 +55,7 @@ class Command(BaseCommand):
                         ttf_files = [f for f in zip_ref.namelist() if f.lower().endswith('.ttf')]
                         if not ttf_files:
                             raise Exception("No TTF files found in the zip archive")
-                        
+
                         # For DejaVu Sans, find the specific file we want
                         if font_name.lower() == 'dejavusans.ttf':
                             target_ttf = next(f for f in ttf_files if 'DejaVuSans.ttf' in f)
@@ -64,7 +65,7 @@ class Command(BaseCommand):
                                 (f for f in ttf_files if font_name.lower() in f.lower()),
                                 ttf_files[0]
                             )
-                        
+
                         # Extract only the needed TTF file
                         with zip_ref.open(target_ttf) as source, open(target_path, 'wb') as target:
                             shutil.copyfileobj(source, target)
@@ -99,7 +100,7 @@ class Command(BaseCommand):
                 font_name = options['font_name']
                 if not font_name.endswith('.ttf'):
                     font_name += '.ttf'
-            
+
             fonts.append({
                 'name': font_name,
                 'url': options['font_url']
@@ -110,7 +111,7 @@ class Command(BaseCommand):
 
         for font in fonts:
             font_path = os.path.join(fonts_dir, font['name'])
-            
+
             # Skip if font already exists
             if os.path.exists(font_path):
                 self.stdout.write(
@@ -131,7 +132,8 @@ class Command(BaseCommand):
                     self.style.ERROR(f"Error processing {font['name']}: {str(e)}")
                 )
                 self.stdout.write(
-                    self.style.NOTICE(f"You can manually download the font from {font['url']} and place it in {fonts_dir}")
+                    self.style.NOTICE(
+                        f"You can manually download the font from {font['url']} and place it in {fonts_dir}")
                 )
 
-        self.stdout.write(self.style.SUCCESS(f'Font setup complete. Fonts directory: {fonts_dir}')) 
+        self.stdout.write(self.style.SUCCESS(f'Font setup complete. Fonts directory: {fonts_dir}'))

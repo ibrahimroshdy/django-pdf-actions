@@ -1,14 +1,16 @@
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
-from django.core.exceptions import ValidationError
-from model_utils.models import TimeStampedModel
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-from django.conf import settings
-from django.forms import TextInput
 import os
 import re
+
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.forms import TextInput
+from django.utils.translation import gettext_lazy as _
+from model_utils.models import TimeStampedModel
+
 
 def validate_hex_color(value):
     """Validate hex color format"""
@@ -18,33 +20,36 @@ def validate_hex_color(value):
             params={'value': value},
         )
 
+
 def get_available_fonts():
     """Get list of available fonts from the static/assets/fonts directory"""
     fonts_dir = os.path.join(settings.BASE_DIR, 'static', 'assets', 'fonts')
     fonts = []
-    
+
     if os.path.exists(fonts_dir):
         for file in os.listdir(fonts_dir):
             if file.lower().endswith(('.ttf', '.otf')):
                 # Store just the filename as the value, but show name without extension as label
                 name = os.path.splitext(file)[0]
                 fonts.append((file, name))
-    
+
     # Always include the default font
     if not fonts or 'DejaVuSans.ttf' not in [f[0] for f in fonts]:
         fonts.append(('DejaVuSans.ttf', 'DejaVu Sans (Default)'))
-    
+
     return sorted(fonts, key=lambda x: x[1])
+
 
 class ColorField(models.CharField):
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 7
         kwargs['validators'] = [validate_hex_color]
         super().__init__(*args, **kwargs)
-        
+
     def formfield(self, **kwargs):
         kwargs['widget'] = TextInput(attrs={'type': 'color'})
         return super().formfield(**kwargs)
+
 
 # Define the ExportPDFSettings model
 class ExportPDFSettings(TimeStampedModel):
@@ -56,7 +61,7 @@ class ExportPDFSettings(TimeStampedModel):
         default=False,
         help_text=_("Only one configuration can be active at a time")
     )
-    
+
     # Page Layout Settings
     items_per_page = models.PositiveIntegerField(
         default=10,
@@ -68,7 +73,7 @@ class ExportPDFSettings(TimeStampedModel):
         validators=[MinValueValidator(5), MaxValueValidator(50)],
         help_text=_("Page margin in millimeters")
     )
-    
+
     # Font Settings
     font_name = models.CharField(
         max_length=100,
@@ -86,7 +91,7 @@ class ExportPDFSettings(TimeStampedModel):
         validators=[MinValueValidator(6), MaxValueValidator(18)],
         help_text=_("Font size for table content")
     )
-    
+
     # Visual Settings
     logo = models.ImageField(
         upload_to='export_pdf/logos/',
@@ -107,7 +112,7 @@ class ExportPDFSettings(TimeStampedModel):
         validators=[MinValueValidator(0.1), MaxValueValidator(2.0)],
         help_text=_("Grid line width in points")
     )
-    
+
     # Display Options
     show_header = models.BooleanField(
         default=True,
@@ -125,7 +130,7 @@ class ExportPDFSettings(TimeStampedModel):
         default=True,
         help_text=_("Display page numbers")
     )
-    
+
     # Table Settings
     table_spacing = models.FloatField(
         default=1.0,
@@ -156,6 +161,7 @@ class ExportPDFSettings(TimeStampedModel):
         verbose_name = _('Export PDF Settings')
         verbose_name_plural = _('Export PDF Settings')
         ordering = ['-active', '-modified']
+
 
 @receiver(pre_save, sender=ExportPDFSettings)
 def deactivate_other_settings(sender, instance, **kwargs):

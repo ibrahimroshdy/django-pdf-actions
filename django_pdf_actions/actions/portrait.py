@@ -2,20 +2,22 @@
 
 import io
 import os
+from datetime import datetime
+
+import arabic_reshaper
+from bidi.algorithm import get_display
 from django.http import HttpResponse
+from django.utils.text import capfirst
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
-from datetime import datetime
-import arabic_reshaper
-from bidi.algorithm import get_display
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph, Table
-from django.utils.text import capfirst
+
 from .utils import (
     get_active_settings, hex_to_rgb, setup_font, get_logo_path,
     create_table_style, create_header_style, calculate_column_widths,
-    draw_table_data, draw_model_name, draw_exported_at,
+    draw_model_name, draw_exported_at,
     draw_page_number, draw_logo
 )
 
@@ -25,7 +27,7 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
     # Create header style with larger font and bold for column headers
     header_style = create_header_style(pdf_settings, font_name, is_header=True)
     body_style = create_header_style(pdf_settings, font_name, is_header=False)
-    
+
     # Process column headers - capitalize and format
     headers = []
     for column in columns:
@@ -36,9 +38,9 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
         else:
             header = capfirst(column.replace('_', ' '))
         headers.append(Paragraph(str(header), header_style))
-    
+
     data = [headers]
-    
+
     for obj in queryset:
         row = []
         for column in columns:
@@ -58,21 +60,22 @@ def export_to_pdf_portrait(modeladmin, request, queryset, pagesize=A4):
     """Export data to PDF in portrait orientation"""
     # Get active settings
     pdf_settings = get_active_settings()
-    
+
     # Create the response object with content type as PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{modeladmin.model.__name__}_export_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.pdf"'
+    response[
+        'Content-Disposition'] = f'attachment; filename="{modeladmin.model.__name__}_export_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.pdf"'
     buffer = io.BytesIO()
-    
+
     # Initialize canvas with portrait orientation
     p = canvas.Canvas(buffer, pagesize=pagesize)
     canvas_width, canvas_height = pagesize
-    
+
     # Use settings or defaults - optimized for portrait
     ROWS_PER_PAGE = pdf_settings.items_per_page if pdf_settings else 20  # More rows in portrait due to less width
     max_chars_per_line = pdf_settings.max_chars_per_line if pdf_settings else 40  # Less chars per line in portrait
     page_margin = (pdf_settings.page_margin_mm if pdf_settings else 15) * mm
-    
+
     # Setup font and colors
     font_name = setup_font(pdf_settings)
     logo_file = get_logo_path(pdf_settings)
@@ -88,13 +91,13 @@ def export_to_pdf_portrait(modeladmin, request, queryset, pagesize=A4):
 
     # Prepare data
     valid_fields = [field for field in modeladmin.list_display if hasattr(modeladmin.model, field)]
-    data = reshape_to_arabic(valid_fields, font_name, 
-                           pdf_settings.body_font_size if pdf_settings else 7,
-                           queryset, max_chars_per_line, pdf_settings)
+    data = reshape_to_arabic(valid_fields, font_name,
+                             pdf_settings.body_font_size if pdf_settings else 7,
+                             queryset, max_chars_per_line, pdf_settings)
 
     # Calculate column widths and pages
-    col_widths = calculate_column_widths(data, table_width, font_name, 
-                                       pdf_settings.body_font_size if pdf_settings else 7)
+    col_widths = calculate_column_widths(data, table_width, font_name,
+                                         pdf_settings.body_font_size if pdf_settings else 7)
     total_rows = len(data) - 1
     total_pages = int((total_rows + ROWS_PER_PAGE - 1) / ROWS_PER_PAGE)
 
@@ -106,15 +109,15 @@ def export_to_pdf_portrait(modeladmin, request, queryset, pagesize=A4):
     # Draw pages
     for page in range(total_pages):
         if not pdf_settings or pdf_settings.show_header:
-            draw_model_name(p, modeladmin, font_name, 
-                          pdf_settings.header_font_size if pdf_settings else 12,
-                          canvas_width, canvas_height, header_margin)
-        
+            draw_model_name(p, modeladmin, font_name,
+                            pdf_settings.header_font_size if pdf_settings else 12,
+                            canvas_width, canvas_height, header_margin)
+
         # Draw the table with adjusted positioning - centered
         start_row = page * ROWS_PER_PAGE
         end_row = min((page + 1) * ROWS_PER_PAGE, len(data))
         page_data = data[0:1] + data[start_row + 1:end_row]  # Include header row
-        
+
         table = Table(page_data, colWidths=col_widths, style=table_style)
         table.wrapOn(p, table_width, table_height)
         table_x = (canvas_width - table_width) / 2  # Center the table
@@ -123,15 +126,15 @@ def export_to_pdf_portrait(modeladmin, request, queryset, pagesize=A4):
 
         # Draw footer elements
         if not pdf_settings or pdf_settings.show_export_time:
-            draw_exported_at(p, font_name, 
-                           pdf_settings.body_font_size if pdf_settings else 7,
-                           canvas_width, footer_margin)
-        
+            draw_exported_at(p, font_name,
+                             pdf_settings.body_font_size if pdf_settings else 7,
+                             canvas_width, footer_margin)
+
         if not pdf_settings or pdf_settings.show_page_numbers:
-            draw_page_number(p, page, total_pages, font_name, 
-                           pdf_settings.body_font_size if pdf_settings else 7,
-                           canvas_width, footer_margin)
-        
+            draw_page_number(p, page, total_pages, font_name,
+                             pdf_settings.body_font_size if pdf_settings else 7,
+                             canvas_width, footer_margin)
+
         if (not pdf_settings or pdf_settings.show_logo) and os.path.exists(logo_file):
             draw_logo(p, logo_file, canvas_width, canvas_height)
 
@@ -141,4 +144,4 @@ def export_to_pdf_portrait(modeladmin, request, queryset, pagesize=A4):
     pdf = buffer.getvalue()
     buffer.close()
     response.write(pdf)
-    return response 
+    return response
