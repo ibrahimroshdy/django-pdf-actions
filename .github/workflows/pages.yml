@@ -25,10 +25,23 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements*.txt
+            pyproject.toml
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install -e .  # Install package locally
           pip install griffe>=0.37
           pip install mkdocs-material==9.5.1
           pip install mkdocstrings>=0.20

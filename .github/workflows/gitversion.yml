@@ -37,6 +37,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install tomli tomli-w
 
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install package locally
+      run: pip install -e .  # This installs from local directory instead of PyPI
+
     - name: Check and update version
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       id: check_version
