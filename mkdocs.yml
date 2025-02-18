@@ -5,7 +5,7 @@ site_name: Django PDF Actions
 site_description: A powerful Django application that adds PDF export capabilities to your Django admin interface. Export your model data to beautifully formatted PDF documents with customizable layouts, fonts, and styling.
 site_author: Ibrahim Roshdy
 
-# Copyright Information
+# Copyright Information 
 copyright: Copyright &copy; 2025 Ibrahim Roshdy
 
 # Repository Information
