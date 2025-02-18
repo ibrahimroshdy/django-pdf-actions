@@ -1,7 +1,7 @@
 # Django PDF Actions
 
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="Django PDF Actions Logo" width="200" height="200">
+  <img src="docs/assets/logo.png" alt="Django PDF Actions Logo" width="200" height="200">
 </p>
 
 [![PyPI version](https://img.shields.io/pypi/v/django-pdf-actions.svg?cache=no)](https://pypi.org/project/django-pdf-actions/)
