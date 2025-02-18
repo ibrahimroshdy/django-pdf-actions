@@ -1,7 +1,7 @@
 # Django PDF Actions
 
 <p align="center">
-  <img src="assets/logo.svg" alt="Django PDF Actions Logo" width="200" height="200">
+  <img src="assets/logo.png" alt="Django PDF Actions Logo" width="200" height="200">
 </p>
 
 A powerful Django application for generating PDF exports from the Django admin interface with advanced customization options.
