@@ -1,7 +1,7 @@
 # Quick Start Guide
 
 <p align="center">
-  <img src="assets/logo.svg" alt="Django PDF Actions Logo" width="200" height="200">
+  <img src="assets/logo.png" alt="Django PDF Actions Logo" width="200" height="200">
 </p>
 
 This guide will help you get started with Django PDF Export quickly.
