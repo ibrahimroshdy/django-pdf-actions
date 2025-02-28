@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-pdf-actions"
-version = "0.1.42"
+version = "0.1.43"
 description = "A Django app to export PDFs from admin actions"
 authors = [
     "Ibrahim Roshdy <ibrahimrosh5@gmail.com>",
