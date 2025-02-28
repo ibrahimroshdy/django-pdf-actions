@@ -12,6 +12,14 @@ from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 
 
+# Page size choices with dimensions in points (1 point = 1/72 inch)
+PAGE_SIZES = [
+    ('A4', 'A4 (210mm × 297mm)'),
+    ('A3', 'A3 (297mm × 420mm)'),
+    ('A2', 'A2 (420mm × 594mm)'),
+    ('A1', 'A1 (594mm × 841mm)'),
+]
+
 def validate_hex_color(value):
     """Validate hex color format"""
     if not re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', value):
@@ -63,9 +71,15 @@ class ExportPDFSettings(TimeStampedModel):
     )
 
     # Page Layout Settings
+    page_size = models.CharField(
+        max_length=2,
+        choices=PAGE_SIZES,
+        default='A4',
+        help_text=_("Select the page size for the PDF")
+    )
     items_per_page = models.PositiveIntegerField(
         default=10,
-        validators=[MinValueValidator(1), MaxValueValidator(50)],
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text=_("Number of items to display per page")
     )
     page_margin_mm = models.PositiveIntegerField(

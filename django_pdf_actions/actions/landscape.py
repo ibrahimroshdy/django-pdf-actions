@@ -9,7 +9,6 @@ from bidi.algorithm import get_display
 from django.http import HttpResponse
 from django.utils.text import capfirst
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph, Table
@@ -17,8 +16,8 @@ from reportlab.platypus import Paragraph, Table
 from .utils import (
     get_active_settings, hex_to_rgb, setup_font, get_logo_path,
     create_table_style, create_header_style, calculate_column_widths,
-    draw_model_name, draw_exported_at,
-    draw_page_number, draw_logo
+    draw_model_name, draw_exported_at, draw_page_number, draw_logo,
+    get_page_size
 )
 
 
@@ -56,10 +55,14 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
     return data
 
 
-def export_to_pdf_landscape(modeladmin, request, queryset, pagesize=landscape(A4)):
+def export_to_pdf_landscape(modeladmin, request, queryset):
     """Export data to PDF in landscape orientation"""
     # Get active settings
     pdf_settings = get_active_settings()
+
+    # Get page size from settings and rotate for landscape
+    pagesize = get_page_size(pdf_settings)
+    pagesize = pagesize[1], pagesize[0]  # Swap width and height for landscape
 
     # Create the response object with content type as PDF
     response = HttpResponse(content_type='application/pdf')
@@ -72,7 +75,7 @@ def export_to_pdf_landscape(modeladmin, request, queryset, pagesize=landscape(A4
     canvas_width, canvas_height = pagesize
 
     # Use settings or defaults - optimized for landscape
-    ROWS_PER_PAGE = pdf_settings.items_per_page if pdf_settings else 15  # More rows in landscape
+    ROWS_PER_PAGE = pdf_settings.items_per_page if pdf_settings else 15  # Fewer rows in landscape due to less height
     max_chars_per_line = pdf_settings.max_chars_per_line if pdf_settings else 60  # More chars per line in landscape
     page_margin = (pdf_settings.page_margin_mm if pdf_settings else 15) * mm
 
@@ -92,12 +95,12 @@ def export_to_pdf_landscape(modeladmin, request, queryset, pagesize=landscape(A4
     # Prepare data
     valid_fields = [field for field in modeladmin.list_display if hasattr(modeladmin.model, field)]
     data = reshape_to_arabic(valid_fields, font_name,
-                             pdf_settings.body_font_size if pdf_settings else 8,
+                             pdf_settings.body_font_size if pdf_settings else 7,
                              queryset, max_chars_per_line, pdf_settings)
 
     # Calculate column widths and pages
     col_widths = calculate_column_widths(data, table_width, font_name,
-                                         pdf_settings.body_font_size if pdf_settings else 8)
+                                         pdf_settings.body_font_size if pdf_settings else 7)
     total_rows = len(data) - 1
     total_pages = int((total_rows + ROWS_PER_PAGE - 1) / ROWS_PER_PAGE)
 
@@ -127,12 +130,12 @@ def export_to_pdf_landscape(modeladmin, request, queryset, pagesize=landscape(A4
         # Draw footer elements
         if not pdf_settings or pdf_settings.show_export_time:
             draw_exported_at(p, font_name,
-                             pdf_settings.body_font_size if pdf_settings else 8,
+                             pdf_settings.body_font_size if pdf_settings else 7,
                              canvas_width, footer_margin)
 
         if not pdf_settings or pdf_settings.show_page_numbers:
             draw_page_number(p, page, total_pages, font_name,
-                             pdf_settings.body_font_size if pdf_settings else 8,
+                             pdf_settings.body_font_size if pdf_settings else 7,
                              canvas_width, footer_margin)
 
         if (not pdf_settings or pdf_settings.show_logo) and os.path.exists(logo_file):

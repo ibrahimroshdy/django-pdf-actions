@@ -9,7 +9,6 @@ from bidi.algorithm import get_display
 from django.http import HttpResponse
 from django.utils.text import capfirst
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph, Table
@@ -18,7 +17,8 @@ from .utils import (
     get_active_settings, hex_to_rgb, setup_font, get_logo_path,
     create_table_style, create_header_style, calculate_column_widths,
     draw_model_name, draw_exported_at,
-    draw_page_number, draw_logo
+    draw_page_number, draw_logo,
+    get_page_size
 )
 
 
@@ -56,10 +56,13 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
     return data
 
 
-def export_to_pdf_portrait(modeladmin, request, queryset, pagesize=A4):
+def export_to_pdf_portrait(modeladmin, request, queryset):
     """Export data to PDF in portrait orientation"""
     # Get active settings
     pdf_settings = get_active_settings()
+
+    # Get page size from settings
+    pagesize = get_page_size(pdf_settings)
 
     # Create the response object with content type as PDF
     response = HttpResponse(content_type='application/pdf')

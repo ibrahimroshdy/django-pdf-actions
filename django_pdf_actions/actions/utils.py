@@ -4,6 +4,7 @@ import os
 
 from django.conf import settings
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, A3, A2, A1
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
@@ -11,6 +12,21 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Table, TableStyle
 
 from ..models import ExportPDFSettings
+
+
+# Page size mapping
+PAGE_SIZE_MAP = {
+    'A4': A4,
+    'A3': A3,
+    'A2': A2,
+    'A1': A1,
+}
+
+def get_page_size(pdf_settings):
+    """Get the page size from settings or default to A4"""
+    if pdf_settings and pdf_settings.page_size:
+        return PAGE_SIZE_MAP.get(pdf_settings.page_size, A4)
+    return A4
 
 
 def get_active_settings():
