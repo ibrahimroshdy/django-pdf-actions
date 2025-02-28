@@ -178,6 +178,7 @@ The active configuration will be used for all PDF exports across your admin inte
 
 | Setting | Description | Default | Range |
 |---------|-------------|---------|--------|
+| Page Size | PDF page size | A4 | A4, A3, A2, A1 |
 | Items Per Page | Rows per page | 10 | 1-50 |
 | Page Margin | Page margins | 15mm | 5-50mm |
 | Font Name | TTF font to use | DejaVuSans.ttf | Any installed TTF |
@@ -189,6 +190,20 @@ The active configuration will be used for all PDF exports across your admin inte
 | Grid Line Width | Table line width | 0.25 | 0.1-2.0 |
 | Table Spacing | Cell padding | 1.0mm | 0.5-5.0mm |
 | Max Chars Per Line | Text wrapping | 45 | 20-100 |
+
+### Page Sizes
+
+The package supports multiple standard page sizes:
+- **A4**: 210mm × 297mm (default)
+- **A3**: 297mm × 420mm
+- **A2**: 420mm × 594mm
+- **A1**: 594mm × 841mm
+
+The page size affects:
+- Available space for content
+- Number of rows per page
+- Table column widths
+- Overall document dimensions
 
 ### Technical Details
 

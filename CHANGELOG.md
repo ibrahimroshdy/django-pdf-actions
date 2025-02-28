@@ -61,6 +61,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Page size selection feature in PDF export settings
+  - Support for A4, A3, A2, and A1 paper sizes
+  - Page size visible in admin list view and filterable
+  - Automatic adjustment of table layout for different page sizes
+  - Default to A4 for backward compatibility
+
 ### Planned
 - Additional export formats
 - Custom template support

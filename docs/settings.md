@@ -4,7 +4,27 @@
   <img src="assets/logo.png" alt="Django PDF Actions Logo" width="200" height="200">
 </p>
 
+## Configuration Guide
+
 ## PDF Export Settings
+
+### Page Layout Settings
+
+#### Page Size
+- **Description**: Select the size of the PDF pages
+- **Default**: A4
+- **Options**:
+  - A4 (210mm × 297mm)
+  - A3 (297mm × 420mm)
+  - A2 (420mm × 594mm)
+  - A1 (594mm × 841mm)
+- **Impact**: Affects the available space for content, number of rows per page, and overall document dimensions
+
+#### Items Per Page
+- **Description**: Number of items to display per page
+- **Default**: 10
+- **Range**: 1-50
+- **Note**: The actual number of items that fit may vary based on content and selected page size
 
 Django PDF Export provides a comprehensive set of settings that can be configured through the Django admin interface.
 

@@ -49,7 +49,8 @@ class PDFExportActionsTest(SimpleTestCase):
             'header_height_mm': 20,
             'footer_height_mm': 15,
             'table_line_height': 1.2,
-            'table_header_height': 30
+            'table_header_height': 30,
+            'page_size': 'A4'
         })()
 
     @patch('django_pdf_actions.actions.landscape.get_active_settings')
