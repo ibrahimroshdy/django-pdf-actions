@@ -36,8 +36,7 @@ class PDFUtilsTest(SimpleTestCase):
             'header_height_mm': 20,
             'footer_height_mm': 15,
             'table_line_height': 1.2,
-            'table_header_height': 30,
-            'page_size': 'A4'
+            'table_header_height': 30
         })()
 
     def test_hex_to_rgb(self):
