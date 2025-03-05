@@ -1,6 +1,6 @@
 # Django PDF Actions
 
-<p align="center">
+<p align="center"> 
   <img src="docs/assets/logo.png" alt="Django PDF Actions Logo" width="200" height="200">
 </p>
 
