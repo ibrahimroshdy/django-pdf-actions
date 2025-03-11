@@ -6,7 +6,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/django-pdf-actions.svg?cache=no)](https://pypi.org/project/django-pdf-actions/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/django-pdf-actions.svg)](https://pypi.org/project/django-pdf-actions/)
-[![Django Versions](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2-green.svg)](https://pypi.org/project/django-pdf-actions/)
+[![Django Versions](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0-green.svg)](https://pypi.org/project/django-pdf-actions/)
 [![Documentation](https://img.shields.io/badge/docs-github_pages-blue.svg)](https://ibrahimroshdy.github.io/django-pdf-actions/)
 [![Documentation Status](https://readthedocs.org/projects/django-pdf-actions/badge/?version=latest)](https://django-pdf-actions.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -208,7 +208,7 @@ The page size affects:
 ### Technical Details
 
 - **Python Compatibility**: Python 3.8 or higher
-- **Django Compatibility**: Django 3.2, 4.0, 4.1, 4.2
+- **Django Compatibility**: Django 3.2, 4.0, 4.1, 4.2, 5.0
 - **Dependencies**: Automatically handled by pip
 - **PDF Engine**: ReportLab
 - **Character Encoding**: UTF-8

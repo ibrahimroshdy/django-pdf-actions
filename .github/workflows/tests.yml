@@ -12,7 +12,13 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-        django-version: ['3.2', '4.0', '4.1', '4.2']
+        django-version: ['3.2', '4.0', '4.1', '4.2', '5.0']
+        exclude:
+          # Django 5.0 requires Python 3.10 or higher
+          - django-version: '5.0'
+            python-version: '3.8'
+          - django-version: '5.0'
+            python-version: '3.9'
 
     steps:
     - uses: actions/checkout@v4
