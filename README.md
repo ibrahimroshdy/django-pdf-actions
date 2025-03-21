@@ -268,4 +268,5 @@ If you are having issues, please let us know by:
    - Ensure your model fields are properly defined in list_display
    - Check that an active PDF Export Settings configuration exists
    - Verify logo file paths if using custom logos
+   - Check for any errors in the Django admin console
 
