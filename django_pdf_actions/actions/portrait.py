@@ -29,7 +29,7 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
     body_style = create_header_style(pdf_settings, font_name, is_header=False)
 
     # Get RTL setting
-    rtl_enabled = pdf_settings and pdf_settings.rtl_support
+    rtl_enabled = pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support
 
     # Process column headers - capitalize and format
     headers = []

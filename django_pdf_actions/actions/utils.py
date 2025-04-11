@@ -88,7 +88,7 @@ def create_table_style(pdf_settings, font_name, header_bg_color, grid_color):
     # Determine cell alignment based on RTL setting
     # 'LEFT', 'CENTER', 'RIGHT'
     cell_alignment = 'CENTER'  # Default is center
-    if pdf_settings and pdf_settings.rtl_support:
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
         cell_alignment = 'RIGHT'  # For RTL languages, default to right alignment
 
     return TableStyle([
@@ -122,7 +122,7 @@ def create_header_style(pdf_settings, font_name, is_header=False):
     # Determine text alignment based on RTL setting
     # 0 = left, 1 = center, 2 = right
     alignment = 1  # Default is center
-    if pdf_settings and pdf_settings.rtl_support:
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
         # For RTL languages, reverse the alignment
         alignment = 2 if not is_header else 1  # Right-align for body text in RTL mode, center for headers
 
@@ -182,7 +182,7 @@ def draw_model_name(p, modeladmin, font_name, font_size, canvas_width, canvas_he
     pdf_settings = get_active_settings()
     
     # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
-    if pdf_settings and pdf_settings.rtl_support:
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
         import arabic_reshaper
         from bidi.algorithm import get_display
         model_name = arabic_reshaper.reshape(model_name)
@@ -205,7 +205,7 @@ def draw_exported_at(p, font_name, font_size, canvas_width, footer_margin):
     exported_at_string = f"Exported at: {export_date_time}"
     
     # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
-    if pdf_settings and pdf_settings.rtl_support:
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
         import arabic_reshaper
         from bidi.algorithm import get_display
         exported_at_string = arabic_reshaper.reshape(exported_at_string)
@@ -215,7 +215,7 @@ def draw_exported_at(p, font_name, font_size, canvas_width, footer_margin):
     exported_at_string_width = p.stringWidth(exported_at_string, font_name, font_size)
     
     # Position string appropriately based on RTL setting
-    if pdf_settings and pdf_settings.rtl_support:
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
         x = 100  # For RTL, align to the left side with margin
     else:
         x = canvas_width - exported_at_string_width - 100  # For LTR, align to the right side with margin
@@ -231,7 +231,7 @@ def draw_page_number(p, page, total_pages, font_name, font_size, canvas_width, f
     page_string = f"Page {page + 1} of {total_pages}"
     
     # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
-    if pdf_settings and pdf_settings.rtl_support:
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
         import arabic_reshaper
         from bidi.algorithm import get_display
         page_string = arabic_reshaper.reshape(page_string)
