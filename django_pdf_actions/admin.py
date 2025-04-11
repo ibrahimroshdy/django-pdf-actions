@@ -7,9 +7,9 @@ import os
 
 @admin.register(models.ExportPDFSettings)
 class PdfAdmin(admin.ModelAdmin):
-    list_display = ('title', 'active', 'font_name_display', 'logo_display', 'items_per_page', 'page_size', 'modified',
+    list_display = ('title', 'active', 'font_name_display', 'logo_display', 'items_per_page', 'page_size', 'rtl_support', 'modified',
                     'header_background_color_preview', 'grid_line_color_preview')
-    list_filter = ('active', 'show_header', 'show_logo', 'show_export_time', 'font_name', 'page_size')
+    list_filter = ('active', 'show_header', 'show_logo', 'show_export_time', 'rtl_support', 'font_name', 'page_size')
     search_fields = ('title',)
     readonly_fields = (
     'modified', 'created', 'header_background_color_preview', 'grid_line_color_preview', 'logo_display')
@@ -73,7 +73,8 @@ class PdfAdmin(admin.ModelAdmin):
         ('Display Options', {
             'fields': (
                 'show_header', 'show_logo',
-                'show_export_time', 'show_page_numbers'
+                'show_export_time', 'show_page_numbers',
+                'rtl_support'
             )
         }),
         ('Table Settings', {

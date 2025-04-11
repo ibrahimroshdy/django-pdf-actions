@@ -144,6 +144,10 @@ class ExportPDFSettings(TimeStampedModel):
         default=True,
         help_text=_("Display page numbers")
     )
+    rtl_support = models.BooleanField(
+        default=False,
+        help_text=_("Enable right-to-left (RTL) text support for Arabic and other RTL languages")
+    )
 
     # Table Settings
     table_spacing = models.FloatField(

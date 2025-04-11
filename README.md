@@ -70,6 +70,8 @@ Through the ExportPDFSettings model, you can configure:
 - Bidirectional text handling
 - Multi-language content support in the same document
 - RTL (Right-to-Left) text support
+- Enhanced RTL support with proper text alignment and bidirectional text handling
+- Configurable RTL support that can be enabled/disabled as needed
 
 ## Quick Start
 
@@ -190,6 +192,7 @@ The active configuration will be used for all PDF exports across your admin inte
 | Grid Line Width | Table line width | 0.25 | 0.1-2.0 |
 | Table Spacing | Cell padding | 1.0mm | 0.5-5.0mm |
 | Max Chars Per Line | Text wrapping | 45 | 20-100 |
+| RTL Support | Right-to-left text | Disabled | Enabled/Disabled |
 
 ### Page Sizes
 
@@ -269,4 +272,10 @@ If you are having issues, please let us know by:
    - Check that an active PDF Export Settings configuration exists
    - Verify logo file paths if using custom logos
    - Check for any errors in the Django admin console
+
+3. RTL Text Support
+   - For Arabic, Hebrew, or other RTL languages, enable the RTL Support option
+   - Use a font that supports the language (e.g., Cairo for Arabic)
+   - Install appropriate fonts using the `setup_fonts` command
+   - Text alignment and directionality will automatically adjust when RTL is enabled
 

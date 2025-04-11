@@ -13,6 +13,9 @@ from .utils import MockModel, MockQuerySet, MockModelAdmin
 class PDFExportActionsTest(SimpleTestCase):
     """Test cases for PDF export actions."""
 
+    # Allow database access for these tests
+    databases = ['default']
+
     def setUp(self):
         """Set up test environment."""
         self.factory = RequestFactory()
@@ -44,6 +47,7 @@ class PDFExportActionsTest(SimpleTestCase):
             'show_header': True,
             'show_export_time': True,
             'show_page_numbers': True,
+            'rtl_support': False,
             'max_chars_per_line': 50,
             'table_spacing': 1.5,
             'header_height_mm': 20,

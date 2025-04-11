@@ -84,6 +84,12 @@ def create_table_style(pdf_settings, font_name, header_bg_color, grid_color):
     body_font_size = pdf_settings.body_font_size if pdf_settings else 8
     grid_line_width = pdf_settings.grid_line_width if pdf_settings else 0.25
     table_spacing = pdf_settings.table_spacing if pdf_settings else 1.5
+    
+    # Determine cell alignment based on RTL setting
+    # 'LEFT', 'CENTER', 'RIGHT'
+    cell_alignment = 'CENTER'  # Default is center
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
+        cell_alignment = 'RIGHT'  # For RTL languages, default to right alignment
 
     return TableStyle([
         ('FONT', (0, 0), (-1, -1), font_name, body_font_size),  # Body font
@@ -92,7 +98,7 @@ def create_table_style(pdf_settings, font_name, header_bg_color, grid_color):
         ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
         ('BACKGROUND', (0, 0), (-1, 0), header_bg_color),
         ('GRID', (0, 0), (-1, -1), grid_line_width, grid_color),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (0, 0), (-1, -1), cell_alignment),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('BOX', (0, 0), (-1, -1), grid_line_width, grid_color),
         ('INNERGRID', (0, 0), (-1, -1), grid_line_width, grid_color),
@@ -112,13 +118,20 @@ def create_header_style(pdf_settings, font_name, is_header=False):
         font_size = pdf_settings.header_font_size if is_header else pdf_settings.body_font_size
     else:
         font_size = 12 if is_header else 8
+    
+    # Determine text alignment based on RTL setting
+    # 0 = left, 1 = center, 2 = right
+    alignment = 1  # Default is center
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
+        # For RTL languages, reverse the alignment
+        alignment = 2 if not is_header else 1  # Right-align for body text in RTL mode, center for headers
 
     return ParagraphStyle(
         'CustomHeader' if is_header else 'CustomBody',
         parent=styles['Normal'],
         fontSize=font_size,
         fontName=font_name,
-        alignment=1,  # Center alignment
+        alignment=alignment,
         spaceAfter=2 * mm,
         leading=font_size * 1.2,  # Line height
         textColor=colors.black,
@@ -164,9 +177,20 @@ def draw_table_data(p, page, rows_per_page, total_rows, col_widths, table_style,
 def draw_model_name(p, modeladmin, font_name, font_size, canvas_width, canvas_height, page_margin):
     """Draw model name header"""
     model_name = modeladmin.model.__name__
+    
+    # Get settings to check if RTL is enabled
+    pdf_settings = get_active_settings()
+    
+    # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
+        import arabic_reshaper
+        from bidi.algorithm import get_display
+        model_name = arabic_reshaper.reshape(model_name)
+        model_name = get_display(model_name)
+    
     p.setFont(font_name, font_size)
     model_name_string_width = p.stringWidth(model_name, font_name, font_size)
-    x = (canvas_width - model_name_string_width) / 2
+    x = canvas_width / 2
     p.drawCentredString(x, canvas_height - page_margin, model_name)
 
 
@@ -174,19 +198,48 @@ def draw_exported_at(p, font_name, font_size, canvas_width, footer_margin):
     """Draw export timestamp"""
     from datetime import datetime
     export_date_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    p.setFont(font_name, font_size)
+    
+    # Get settings to check if RTL is enabled
+    pdf_settings = get_active_settings()
+    
     exported_at_string = f"Exported at: {export_date_time}"
+    
+    # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
+        import arabic_reshaper
+        from bidi.algorithm import get_display
+        exported_at_string = arabic_reshaper.reshape(exported_at_string)
+        exported_at_string = get_display(exported_at_string)
+    
+    p.setFont(font_name, font_size)
     exported_at_string_width = p.stringWidth(exported_at_string, font_name, font_size)
-    x = canvas_width - exported_at_string_width - 100
+    
+    # Position string appropriately based on RTL setting
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
+        x = 100  # For RTL, align to the left side with margin
+    else:
+        x = canvas_width - exported_at_string_width - 100  # For LTR, align to the right side with margin
+    
     p.drawString(x, footer_margin, exported_at_string)
 
 
 def draw_page_number(p, page, total_pages, font_name, font_size, canvas_width, footer_margin):
     """Draw page numbers"""
-    p.setFont(font_name, font_size)
+    # Get settings to check if RTL is enabled
+    pdf_settings = get_active_settings()
+    
     page_string = f"Page {page + 1} of {total_pages}"
+    
+    # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
+    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
+        import arabic_reshaper
+        from bidi.algorithm import get_display
+        page_string = arabic_reshaper.reshape(page_string)
+        page_string = get_display(page_string)
+    
+    p.setFont(font_name, font_size)
     page_string_width = p.stringWidth(page_string, font_name, font_size)
-    x = (canvas_width - page_string_width) / 2
+    x = canvas_width / 2
     p.drawCentredString(x, footer_margin, page_string)
 
 
