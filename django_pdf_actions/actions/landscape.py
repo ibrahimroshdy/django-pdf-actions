@@ -27,6 +27,9 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
     header_style = create_header_style(pdf_settings, font_name, is_header=True)
     body_style = create_header_style(pdf_settings, font_name, is_header=False)
 
+    # Get RTL setting
+    rtl_enabled = pdf_settings and pdf_settings.rtl_support
+
     # Process column headers - capitalize and format
     headers = []
     for column in columns:
@@ -36,6 +39,12 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
             header = capfirst(field.verbose_name) if hasattr(field, 'verbose_name') else capfirst(column)
         else:
             header = capfirst(column.replace('_', ' '))
+        
+        # Apply RTL processing to headers if enabled
+        if rtl_enabled and isinstance(header, str):
+            header = arabic_reshaper.reshape(header)
+            header = get_display(header)
+            
         headers.append(Paragraph(str(header), header_style))
 
     data = [headers]
@@ -45,8 +54,12 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
         for column in columns:
             value = str(getattr(obj, column))
             if isinstance(value, str):
-                value = arabic_reshaper.reshape(value)
-                value = get_display(value)
+                # Only reshape if RTL is enabled and the string contains text
+                if rtl_enabled:
+                    value = arabic_reshaper.reshape(value)
+                    value = get_display(value)
+                
+                # Handle line wrapping for long text
                 if len(value) > max_chars_per_line:
                     lines = [value[i:i + max_chars_per_line] for i in range(0, len(value), max_chars_per_line)]
                     value = "<br/>".join(lines)
