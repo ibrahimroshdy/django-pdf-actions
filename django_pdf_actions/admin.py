@@ -1,18 +1,23 @@
+import os
+
 from django.contrib import admin
 from django.utils.html import format_html
-from .actions import export_to_pdf_landscape, export_to_pdf_portrait
+
 from . import models
-import os
+from .actions import export_to_pdf_landscape, export_to_pdf_portrait
 
 
 @admin.register(models.ExportPDFSettings)
 class PdfAdmin(admin.ModelAdmin):
-    list_display = ('title', 'active', 'font_name_display', 'logo_display', 'items_per_page', 'page_size', 'rtl_support', 'modified',
+    list_display = ('title', 'active', 'font_name_display', 'logo_display', 'items_per_page', 'page_size',
+                    'rtl_support',
+                    'content_alignment', 'header_alignment', 'modified',
                     'header_background_color_preview', 'grid_line_color_preview')
-    list_filter = ('active', 'show_header', 'show_logo', 'show_export_time', 'rtl_support', 'font_name', 'page_size')
+    list_filter = ('active', 'show_header', 'show_logo', 'show_export_time', 'rtl_support',
+                   'content_alignment', 'header_alignment', 'title_alignment', 'font_name', 'page_size')
     search_fields = ('title',)
     readonly_fields = (
-    'modified', 'created', 'header_background_color_preview', 'grid_line_color_preview', 'logo_display')
+        'modified', 'created', 'header_background_color_preview', 'grid_line_color_preview', 'logo_display')
 
     def font_name_display(self, obj):
         font_name = os.path.splitext(obj.font_name)[0]  # Remove .ttf extension
@@ -75,6 +80,11 @@ class PdfAdmin(admin.ModelAdmin):
                 'show_header', 'show_logo',
                 'show_export_time', 'show_page_numbers',
                 'rtl_support'
+            )
+        }),
+        ('Alignment Settings', {
+            'fields': (
+                'title_alignment', 'header_alignment', 'content_alignment'
             )
         }),
         ('Table Settings', {

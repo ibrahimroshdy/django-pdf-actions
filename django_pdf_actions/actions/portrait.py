@@ -31,6 +31,10 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
     # Get RTL setting
     rtl_enabled = pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support
 
+    # If RTL is enabled, reverse the columns order to display right-to-left
+    if rtl_enabled:
+        columns = list(reversed(columns))
+
     # Process column headers - capitalize and format
     headers = []
     for column in columns:
@@ -40,12 +44,12 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
             header = capfirst(field.verbose_name) if hasattr(field, 'verbose_name') else capfirst(column)
         else:
             header = capfirst(column.replace('_', ' '))
-        
+
         # Apply RTL processing to headers if enabled
         if rtl_enabled and isinstance(header, str):
             header = arabic_reshaper.reshape(header)
             header = get_display(header)
-            
+
         headers.append(Paragraph(str(header), header_style))
 
     data = [headers]
@@ -59,7 +63,7 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
                 if rtl_enabled:
                     value = arabic_reshaper.reshape(value)
                     value = get_display(value)
-                
+
                 # Handle line wrapping for long text
                 if len(value) > max_chars_per_line:
                     lines = [value[i:i + max_chars_per_line] for i in range(0, len(value), max_chars_per_line)]

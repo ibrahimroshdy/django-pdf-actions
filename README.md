@@ -58,6 +58,11 @@ Through the ExportPDFSettings model, you can configure:
   - Toggle export timestamp
   - Toggle page numbers
   - Customizable header and footer information
+- Alignment Options:
+  - Customizable title alignment (left, center, right)
+  - Customizable header alignment (left, center, right)
+  - Customizable content alignment (left, center, right)
+  - Automatic RTL alignment for right-to-left languages
 - Table Settings:
   - Cell spacing and padding control
   - Text wrapping with configurable character limits
@@ -72,6 +77,9 @@ Through the ExportPDFSettings model, you can configure:
 - RTL (Right-to-Left) text support
 - Enhanced RTL support with proper text alignment and bidirectional text handling
 - Configurable RTL support that can be enabled/disabled as needed
+- Column order reversal for proper RTL table display
+- Uses model verbose_name for proper localized headings
+- Customizable alignment options for RTL content
 
 ## Quick Start
 
@@ -193,6 +201,9 @@ The active configuration will be used for all PDF exports across your admin inte
 | Table Spacing | Cell padding | 1.0mm | 0.5-5.0mm |
 | Max Chars Per Line | Text wrapping | 45 | 20-100 |
 | RTL Support | Right-to-left text | Disabled | Enabled/Disabled |
+| Title Alignment | Title text alignment | Center | Left/Center/Right |
+| Header Alignment | Column headers alignment | Center | Left/Center/Right |
+| Content Alignment | Table content alignment | Center | Left/Center/Right |
 
 ### Page Sizes
 

@@ -11,7 +11,6 @@ from django.forms import TextInput
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 
-
 # Page size choices with dimensions in points (1 point = 1/72 inch)
 PAGE_SIZES = [
     ('A4', 'A4 (210mm × 297mm)'),
@@ -19,6 +18,14 @@ PAGE_SIZES = [
     ('A2', 'A2 (420mm × 594mm)'),
     ('A1', 'A1 (594mm × 841mm)'),
 ]
+
+# Define alignment choices
+ALIGNMENT_CHOICES = [
+    ('LEFT', 'Left'),
+    ('CENTER', 'Center'),
+    ('RIGHT', 'Right'),
+]
+
 
 def validate_hex_color(value):
     """Validate hex color format"""
@@ -147,6 +154,24 @@ class ExportPDFSettings(TimeStampedModel):
     rtl_support = models.BooleanField(
         default=False,
         help_text=_("Enable right-to-left (RTL) text support for Arabic and other RTL languages")
+    )
+    content_alignment = models.CharField(
+        max_length=10,
+        choices=ALIGNMENT_CHOICES,
+        default='CENTER',
+        help_text=_("Text alignment for table content")
+    )
+    header_alignment = models.CharField(
+        max_length=10,
+        choices=ALIGNMENT_CHOICES,
+        default='CENTER',
+        help_text=_("Text alignment for table headers")
+    )
+    title_alignment = models.CharField(
+        max_length=10,
+        choices=ALIGNMENT_CHOICES,
+        default='CENTER',
+        help_text=_("Text alignment for the title")
     )
 
     # Table Settings

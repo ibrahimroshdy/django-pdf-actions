@@ -2,7 +2,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('django_pdf_actions', '0001_initial'),
     ]
@@ -23,4 +22,4 @@ class Migration(migrations.Migration):
                 max_length=2
             ),
         ),
-    ] 
+    ]
