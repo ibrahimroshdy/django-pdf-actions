@@ -82,7 +82,7 @@ Django PDF Export provides a comprehensive set of settings that can be configure
 
 ## RTL Support
 
-Django PDF Actions provides comprehensive support for right-to-left languages like Arabic, Hebrew, and Persian.
+Django PDF Actions provides comprehensive support for right-to-left languages like Arabic and Persian.
 
 ### Features:
 - Automatic text reshaping for proper RTL script display

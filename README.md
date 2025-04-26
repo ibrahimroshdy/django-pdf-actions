@@ -285,7 +285,7 @@ If you are having issues, please let us know by:
    - Check for any errors in the Django admin console
 
 3. RTL Text Support
-   - For Arabic, Hebrew, or other RTL languages, enable the RTL Support option
+   - For Arabic, Persian, or other RTL languages, enable the RTL Support option
    - Use a font that supports the language (e.g., Cairo for Arabic)
    - Install appropriate fonts using the `setup_fonts` command
    - Text alignment and directionality will automatically adjust when RTL is enabled
