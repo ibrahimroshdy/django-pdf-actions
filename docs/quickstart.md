@@ -88,4 +88,4 @@ class YourModelAdmin(admin.ModelAdmin):
 
 ## Next Steps
 
-- Configure [Custom Settings](settings.md) 
+- Configure [Custom Settings](settings.md)

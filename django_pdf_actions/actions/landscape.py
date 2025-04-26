@@ -62,10 +62,13 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
                 if rtl_enabled:
                     value = arabic_reshaper.reshape(value)
                     value = get_display(value)
-                
+
                 # Handle line wrapping for long text
                 if len(value) > max_chars_per_line:
                     lines = [value[i:i + max_chars_per_line] for i in range(0, len(value), max_chars_per_line)]
+                    # Reverse lines for RTL text to display properly from top to bottom
+                    if rtl_enabled:
+                        lines.reverse()
                     value = "<br/>".join(lines)
             row.append(Paragraph(str(value), body_style))
         data.append(row)

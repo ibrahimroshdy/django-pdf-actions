@@ -133,7 +133,7 @@ def create_header_style(pdf_settings, font_name, is_header=False):
         font_size = pdf_settings.header_font_size if is_header else pdf_settings.body_font_size
     else:
         font_size = 12 if is_header else 8
-    
+
     # Determine text alignment based on RTL setting and alignment settings
     # 0 = left, 1 = center, 2 = right
     alignment = 1  # Default is center
@@ -249,8 +249,7 @@ def draw_model_name(p, modeladmin, font_name, font_size, canvas_width, canvas_he
         x = canvas_width / 2
 
     # Check if we should use drawString or drawCentredString based on alignment
-    if (pdf_settings and hasattr(pdf_settings, 'title_alignment') and
-        pdf_settings.title_alignment == 'CENTER') or not hasattr(pdf_settings, 'title_alignment'):
+    if (pdf_settings and hasattr(pdf_settings, 'title_alignment') and  pdf_settings.title_alignment == 'CENTER') or not hasattr(pdf_settings, 'title_alignment'):
         p.drawCentredString(x, canvas_height - page_margin, model_name)
     else:
         p.drawString(x, canvas_height - page_margin, model_name)
