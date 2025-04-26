@@ -10,7 +10,7 @@
 [![Documentation](https://img.shields.io/badge/docs-github_pages-blue.svg)](https://ibrahimroshdy.github.io/django-pdf-actions/)
 [![Documentation Status](https://readthedocs.org/projects/django-pdf-actions/badge/?version=latest)](https://django-pdf-actions.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Development Status](https://img.shields.io/badge/status-beta-yellow.svg)](https://pypi.org/project/django-pdf-actions/)
+[![Development Status](https://img.shields.io/badge/status-stable-green.svg)](https://pypi.org/project/django-pdf-actions/)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ibrahimroshdy/django-pdf-actions.svg)](https://github.com/ibrahimroshdy/django-pdf-actions/commits/main)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/django-pdf-actions.svg)](https://pypistats.org/packages/django-pdf-actions)
 [![Total Downloads](https://static.pepy.tech/badge/django-pdf-actions)](https://pepy.tech/project/django-pdf-actions)

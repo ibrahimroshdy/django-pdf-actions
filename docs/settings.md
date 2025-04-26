@@ -70,6 +70,31 @@ Django PDF Export provides a comprehensive set of settings that can be configure
 | `show_logo` | Display company logo | True |
 | `show_export_time` | Show export timestamp | True |
 | `show_page_numbers` | Show page numbers | True |
+| `rtl_support` | Enable right-to-left text support | False |
+
+## Text Alignment Options
+
+| Setting | Description | Default | Options |
+|---------|-------------|---------|---------|
+| `title_alignment` | Alignment for document title | CENTER | LEFT, CENTER, RIGHT |
+| `header_alignment` | Alignment for table headers | CENTER | LEFT, CENTER, RIGHT |
+| `content_alignment` | Alignment for table content | CENTER | LEFT, CENTER, RIGHT |
+
+## RTL Support
+
+Django PDF Actions provides comprehensive support for right-to-left languages like Arabic, Hebrew, and Persian.
+
+### Features:
+- Automatic text reshaping for proper RTL script display
+- Reversal of column ordering to match RTL reading direction
+- Proper bidirectional text handling
+- RTL-appropriate alignment options
+
+To enable RTL support:
+1. Navigate to Admin > Django PDF > Export PDF Settings
+2. Enable the "RTL Support" option
+3. Select appropriate alignment options for your content
+4. Use fonts that support your target language (e.g., Cairo for Arabic)
 
 ## Configuration Example
 
