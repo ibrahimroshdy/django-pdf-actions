@@ -27,36 +27,37 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
           cache-dependency-path: |
-            **/requirements*.txt
+            docs/requirements.txt
             pyproject.toml
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          key: ${{ runner.os }}-pip-docs-${{ hashFiles('docs/requirements.txt') }}
           restore-keys: |
+            ${{ runner.os }}-pip-docs-
             ${{ runner.os }}-pip-
 
-      - name: Install dependencies
+      - name: Install package and documentation dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e .  # Install package locally
-          pip install griffe>=0.37
-          pip install mkdocs-material==9.5.1
-          pip install mkdocstrings>=0.20
-          pip install mkdocstrings-python>=1.7.0
-          pip install mkdocs-autorefs>=0.3.1
-          pip install pymdown-extensions>=6.3
-          pip install mkdocs>=1.4.0
+          pip install -r docs/requirements.txt  # Install documentation requirements
 
       - name: Configure Git
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
 
+      - name: Validate MkDocs configuration
+        run: |
+          mkdocs --version
+          python -c "import mkdocs_mermaid2_plugin; print('Mermaid plugin installed successfully')"
+          mkdocs config-docs --validate
+
       - name: Build documentation
-        run: mkdocs build --clean --verbose
+        run: mkdocs build --clean --verbose --strict
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
