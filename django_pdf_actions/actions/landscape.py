@@ -21,7 +21,7 @@ from .utils import (
 )
 
 
-def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_line, pdf_settings=None):
+def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_line, pdf_settings=None, modeladmin=None):
     """Process and reshape Arabic text if present"""
     # Create header style with larger font and bold for column headers
     header_style = create_header_style(pdf_settings, font_name, is_header=True)
@@ -37,10 +37,24 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
     # Process column headers - capitalize and format
     headers = []
     for column in columns:
-        # Get verbose name if available, otherwise capitalize the field name
+        # Get header text from different sources
+        header = None
+        
+        # First, try to get verbose name from model field
         if hasattr(queryset.model, column):
-            field = queryset.model._meta.get_field(column)
-            header = capfirst(field.verbose_name) if hasattr(field, 'verbose_name') else capfirst(column)
+            try:
+                field = queryset.model._meta.get_field(column)
+                header = capfirst(field.verbose_name) if hasattr(field, 'verbose_name') else capfirst(column)
+            except:
+                # Field might exist but not be a model field
+                header = capfirst(column.replace('_', ' '))
+        elif modeladmin and hasattr(modeladmin, column):
+            # Check if the method has a short_description attribute
+            method = getattr(modeladmin, column)
+            if hasattr(method, 'short_description'):
+                header = str(method.short_description)
+            else:
+                header = capfirst(column.replace('_', ' '))
         else:
             header = capfirst(column.replace('_', ' '))
 
@@ -56,7 +70,28 @@ def reshape_to_arabic(columns, font_name, font_size, queryset, max_chars_per_lin
     for obj in queryset:
         row = []
         for column in columns:
-            value = str(getattr(obj, column))
+            # Try to get the value from different sources
+            value = None
+            
+            # First, try to get from the object directly (model field or property)
+            if hasattr(obj, column):
+                value = getattr(obj, column)
+            # If that fails and we have a modeladmin, try to call the admin method
+            elif modeladmin and hasattr(modeladmin, column):
+                try:
+                    method = getattr(modeladmin, column)
+                    if callable(method):
+                        value = method(obj)
+                    else:
+                        value = method
+                except:
+                    value = f"Error: {column}"
+            else:
+                value = f"Missing: {column}"
+            
+            # Convert to string
+            value = str(value) if value is not None else ""
+            
             if isinstance(value, str):
                 # Only reshape if RTL is enabled and the string contains text
                 if rtl_enabled:
@@ -112,11 +147,11 @@ def export_to_pdf_landscape(modeladmin, request, queryset):
     table_width = canvas_width - (2 * page_margin)
     table_height = canvas_height - (3 * page_margin)  # Leave space for header and footer
 
-    # Prepare data
-    valid_fields = [field for field in modeladmin.list_display if hasattr(modeladmin.model, field)]
+    # Prepare data - include all fields from list_display (both model fields and admin methods)
+    valid_fields = list(modeladmin.list_display)
     data = reshape_to_arabic(valid_fields, font_name,
                              pdf_settings.body_font_size if pdf_settings else 7,
-                             queryset, max_chars_per_line, pdf_settings)
+                             queryset, max_chars_per_line, pdf_settings, modeladmin)
 
     # Calculate column widths and pages
     col_widths = calculate_column_widths(data, table_width, font_name,
