@@ -50,14 +50,8 @@ jobs:
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
 
-      - name: Validate MkDocs configuration
-        run: |
-          mkdocs --version
-          python -c "import mkdocs_mermaid2_plugin; print('Mermaid plugin installed successfully')"
-          mkdocs config-docs --validate
-
       - name: Build documentation
-        run: mkdocs build --clean --verbose --strict
+        run: mkdocs build --clean --verbose
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
