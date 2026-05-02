@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-pdf-actions"
-version = "0.1.52"
+version = "0.1.53"
 description = "A Django app to export PDFs from admin actions"
 authors = [
     "Ibrahim Roshdy <ibrahimrosh5@gmail.com>",
@@ -45,7 +45,6 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.8,<4"
 Django = ">=3.2"
-# ReportLab 4.4+ passes hashlib.md5(..., usedforsecurity=False), which requires Python 3.9+.
 reportlab = ">=4.0.4,<4.4"
 arabic-reshaper = "^3.0.0"
 python-bidi = ">=0.4.0"
@@ -74,14 +73,14 @@ extras = [
 ]
 version = "^0.24.0"
 
-[build-system]
-requires = [
-    "poetry-core",
-]
-build-backend = "poetry.core.masonry.api"
-
 [tool.isort]
 profile = "black"
 known_first_party = [
     "django_pdf_actions",
 ]
+
+[build-system]
+requires = [
+    "poetry-core",
+]
+build-backend = "poetry.core.masonry.api"
