@@ -6,6 +6,9 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+
 from django_pdf_actions.actions import export_to_pdf_landscape, export_to_pdf_portrait
 from django_pdf_actions.actions.landscape import (
     reshape_to_arabic as landscape_reshape_to_arabic,
@@ -14,8 +17,6 @@ from django_pdf_actions.actions.portrait import (
     reshape_to_arabic as portrait_reshape_to_arabic,
 )
 from django_pdf_actions.models import ExportPDFSettings
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
 
 from .utils import MockModel, MockModelAdmin, MockQuerySet
 

@@ -245,6 +245,7 @@ class TestHelpers:
             MockModelAdmin: Test model admin instance
         """
         from django.contrib.admin.sites import AdminSite
+
         from tests.utils import MockModel, MockModelAdmin
 
         return MockModelAdmin(MockModel, AdminSite())

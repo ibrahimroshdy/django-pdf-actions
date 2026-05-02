@@ -4,9 +4,10 @@ from typing import List, Tuple
 
 import django.core.validators
 import django.utils.timezone
-import django_pdf_actions.models
 import model_utils.fields
 from django.db import migrations, models
+
+import django_pdf_actions.models
 
 
 class Migration(migrations.Migration):

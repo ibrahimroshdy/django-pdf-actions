@@ -5,6 +5,11 @@ import os
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A1, A2, A3, A4
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.platypus import TableStyle
+
 from django_pdf_actions.actions.utils import (
     PAGE_SIZE_MAP,
     calculate_column_widths,
@@ -21,10 +26,6 @@ from django_pdf_actions.actions.utils import (
     setup_font,
 )
 from django_pdf_actions.models import ExportPDFSettings
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A1, A2, A3, A4
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.platypus import TableStyle
 
 
 class PDFUtilsTest(TestCase):

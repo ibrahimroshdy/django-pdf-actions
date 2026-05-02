@@ -4,6 +4,7 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
+
 from django_pdf_actions.actions import export_to_pdf_landscape, export_to_pdf_portrait
 from django_pdf_actions.admin import ExportPDFSettingsAdmin, PdfAdmin
 from django_pdf_actions.models import ExportPDFSettings

@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TestCase
+
 from django_pdf_actions.management.commands.setup_fonts import (
     Command as SetupFontsCommand,
 )

@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+
 from django_pdf_actions.models import (
     ALIGNMENT_CHOICES,
     PAGE_SIZES,

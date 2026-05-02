@@ -7,6 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
+
 from django_pdf_actions.actions import export_to_pdf_landscape, export_to_pdf_portrait
 from django_pdf_actions.models import ExportPDFSettings
 
