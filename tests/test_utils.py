@@ -1,5 +1,6 @@
 """Tests for PDF export utility functions."""
 
+import hashlib
 import os
 import tempfile
 from unittest.mock import patch, MagicMock, mock_open
@@ -7,7 +8,8 @@ from django.test import TestCase, override_settings
 from django.conf import settings
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, A3, A2, A1
-from reportlab.platypus import TableStyle, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.platypus import TableStyle
 from reportlab.pdfbase import pdfmetrics
 from django_pdf_actions.actions.utils import (
     hex_to_rgb, setup_font, get_logo_path, get_page_size, get_active_settings,
@@ -80,71 +82,123 @@ class PDFUtilsTest(TestCase):
             hex_to_rgb('#0000FF'),
             (0.0, 0.0, 1.0)
         )
+        # Short #RGB form expands to #RRGGBB
+        self.assertEqual(hex_to_rgb('#abc'), hex_to_rgb('#aabbcc'))
+        self.assertEqual(hex_to_rgb('#f00'), (1.0, 0.0, 0.0))
 
-    @patch('django_pdf_actions.actions.utils.settings.BASE_DIR', '/fake/path')
-    @patch('os.path.exists')
-    def test_setup_font_with_custom_font(self, mock_exists):
+    @patch('django_pdf_actions.actions.utils.TTFont')
+    @patch('django_pdf_actions.actions.utils.pdfmetrics.getRegisteredFontNames', return_value=[])
+    @patch('django_pdf_actions.actions.utils.resolve_font_path')
+    def test_setup_font_with_custom_font(self, mock_resolve, _mock_registered, _mock_tt):
         """Test font setup with custom font."""
-        mock_exists.return_value = True
-        
+        mock_resolve.return_value = '/fake/fonts/DejaVuSans.ttf'
+
         with patch('django_pdf_actions.actions.utils.pdfmetrics.registerFont') as mock_register:
             font_name = setup_font(self.settings)
-            self.assertEqual(font_name, 'PDF_Font')
+            self.assertTrue(font_name.startswith('PdfAct_'))
             mock_register.assert_called_once()
 
-    @patch('django_pdf_actions.actions.utils.settings.BASE_DIR', '/fake/path')
-    @patch('os.path.exists')
-    def test_setup_font_with_default_font(self, mock_exists):
-        """Test font setup with default font."""
-        # First call returns False (custom font doesn't exist)
-        # Second call returns True (default font exists)
-        mock_exists.side_effect = [False, True]
-        
+    @patch('django_pdf_actions.actions.utils.TTFont')
+    @patch('django_pdf_actions.actions.utils.pdfmetrics.getRegisteredFontNames', return_value=[])
+    @patch('django_pdf_actions.actions.utils.resolve_font_path')
+    def test_setup_font_with_default_font(self, mock_resolve, _mock_registered, _mock_tt):
+        """Test font setup when configured font is missing but bundle default resolves."""
+        mock_resolve.side_effect = [None, '/fake/fonts/DejaVuSans.ttf']
+
         with patch('django_pdf_actions.actions.utils.pdfmetrics.registerFont') as mock_register:
             font_name = setup_font(self.settings)
-            self.assertEqual(font_name, 'PDF_Font')
+            self.assertTrue(font_name.startswith('PdfAct_'))
             mock_register.assert_called_once()
 
-    @patch('django_pdf_actions.actions.utils.settings.BASE_DIR', '/fake/path')
-    @patch('os.path.exists')
-    def test_setup_font_fallback_to_helvetica(self, mock_exists):
+    @patch('django_pdf_actions.actions.utils.resolve_font_path', return_value=None)
+    def test_setup_font_fallback_to_helvetica(self, mock_resolve):
         """Test font setup fallback to Helvetica."""
-        mock_exists.return_value = False
-        
         font_name = setup_font(self.settings)
         self.assertEqual(font_name, 'Helvetica')
 
-    @patch('django_pdf_actions.actions.utils.settings.BASE_DIR', '/fake/path')
-    @patch('os.path.exists')
-    def test_setup_font_with_none_settings(self, mock_exists):
+    @patch('django_pdf_actions.actions.utils.resolve_font_path', return_value=None)
+    def test_setup_font_with_none_settings(self, mock_resolve):
         """Test font setup with None settings."""
-        mock_exists.return_value = False
-        
         font_name = setup_font(None)
         self.assertEqual(font_name, 'Helvetica')
 
-    def test_get_logo_path_with_logo(self):
-        """Test logo path retrieval with logo."""
+    @patch('django_pdf_actions.actions.utils.pdfmetrics.getRegisteredFontNames')
+    @patch('django_pdf_actions.actions.utils.resolve_font_path')
+    def test_setup_font_skips_register_when_already_registered(
+        self, mock_resolve, mock_registered_names
+    ):
+        """Same resolved path does not call registerFont again if already registered."""
+        font_path = '/fake/fonts/DejaVuSans.ttf'
+        mock_resolve.return_value = font_path
+        internal = (
+            'PdfAct_'
+            + hashlib.sha256(os.path.abspath(font_path).encode()).hexdigest()[:12]
+        )
+        mock_registered_names.return_value = [internal]
+        with patch('django_pdf_actions.actions.utils.pdfmetrics.registerFont') as mock_register:
+            self.assertEqual(setup_font(self.settings), internal)
+            mock_register.assert_not_called()
+
+    @patch('django_pdf_actions.actions.utils.os.path.isfile')
+    def test_get_logo_path_with_logo(self, mock_isfile):
+        """Test logo path retrieval with a locally stored logo file."""
+        mock_isfile.return_value = True
         mock_logo = MagicMock()
         mock_logo.path = '/path/to/logo.png'
+        mock_logo.name = 'export_pdf/logos/x.png'
         self.settings.logo = mock_logo
-        
+        self.settings.show_logo = True
+
         path = get_logo_path(self.settings)
         self.assertEqual(path, '/path/to/logo.png')
 
     def test_get_logo_path_without_logo(self):
-        """Test logo path retrieval without logo."""
+        """Test logo path when no image is configured."""
         self.settings.logo = None
-        
-        with patch('django_pdf_actions.actions.utils.settings.MEDIA_ROOT', '/media'):
-            path = get_logo_path(self.settings)
-            self.assertEqual(path, '/media/export_pdf/logo.png')
+        self.assertIsNone(get_logo_path(self.settings))
+
+    def test_get_logo_path_show_logo_disabled(self):
+        """When show_logo is off, do not resolve a path even if a file exists."""
+        mock_logo = MagicMock()
+        mock_logo.path = '/path/to/logo.png'
+        mock_logo.name = 'x.png'
+        self.settings.logo = mock_logo
+        self.settings.show_logo = False
+        self.assertIsNone(get_logo_path(self.settings))
 
     def test_get_logo_path_with_none_settings(self):
         """Test logo path retrieval with None settings."""
-        with patch('django_pdf_actions.actions.utils.settings.MEDIA_ROOT', '/media'):
-            path = get_logo_path(None)
-            self.assertEqual(path, '/media/export_pdf/logo.png')
+        self.assertIsNone(get_logo_path(None))
+
+    @patch('django_pdf_actions.actions.utils.os.path.isfile')
+    def test_get_logo_path_remote_storage_uses_image_reader(self, mock_isfile):
+        """Remote backends without local path fall back to ImageReader."""
+        mock_isfile.return_value = False
+
+        mock_storage = MagicMock()
+        mock_storage.path.side_effect = NotImplementedError()
+        inner = MagicMock()
+        inner.read.return_value = (
+            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01'
+            b'\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\xfa'
+            b'\x0f\x00\x00\x01\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
+        )
+        mgr = MagicMock()
+        mgr.__enter__.return_value = inner
+        mgr.__exit__.return_value = None
+        mock_storage.open.return_value = mgr
+
+        mock_logo = MagicMock()
+        mock_logo.path = '/nope'
+        mock_logo.name = 'logos/remote.png'
+        mock_logo.storage = mock_storage
+        self.settings.logo = mock_logo
+        self.settings.show_logo = True
+
+        from reportlab.lib.utils import ImageReader
+
+        result = get_logo_path(self.settings)
+        self.assertIsInstance(result, ImageReader)
 
     def test_get_page_size_with_settings(self):
         """Test page size retrieval with settings."""
@@ -253,10 +307,14 @@ class PDFUtilsTest(TestCase):
         self.assertEqual(style.alignment, 2)  # RIGHT
 
     def test_create_header_style_with_rtl(self):
-        """Test header style creation with RTL support."""
-        self.settings.rtl_support = True
-        style = create_header_style(self.settings, 'Helvetica', False)
-        self.assertEqual(style.alignment, 2)  # RIGHT for RTL
+        """Test header style creation with RTL support (no explicit L/R alignment)."""
+        rtl_only = type('RTLSettings', (), {
+            'header_font_size': 12,
+            'body_font_size': 10,
+            'rtl_support': True,
+        })()
+        style = create_header_style(rtl_only, 'Helvetica', False)
+        self.assertEqual(style.alignment, 2)  # RIGHT for RTL body when not overridden
 
     def test_create_header_style_with_none_settings(self):
         """Test header style creation with None settings."""
@@ -439,34 +497,37 @@ class PDFUtilsTest(TestCase):
                 mock_arabic.reshape.assert_called_once()
                 mock_display.assert_called_once()
 
-    @patch('os.path.exists')
-    def test_draw_logo_exists(self, mock_exists):
+    @patch('os.path.isfile')
+    def test_draw_logo_exists(self, mock_isfile):
         """Test drawing logo when file exists."""
-        mock_exists.return_value = True
-        
-        # Create mock canvas
+        mock_isfile.return_value = True
+
         mock_canvas = MagicMock()
-        
-        with patch('django_pdf_actions.actions.utils.Image') as mock_image:
+
+        with patch('reportlab.platypus.Image') as mock_image:
             mock_image_instance = MagicMock()
             mock_image.return_value = mock_image_instance
-            
+
             draw_logo(mock_canvas, '/path/to/logo.png', 600, 800)
-            
+
             mock_image.assert_called_once_with('/path/to/logo.png', width=100, height=50)
             mock_image_instance.drawOn.assert_called_once()
 
-    @patch('os.path.exists')
-    def test_draw_logo_not_exists(self, mock_exists):
+    @patch('os.path.isfile')
+    def test_draw_logo_not_exists(self, mock_isfile):
         """Test drawing logo when file doesn't exist."""
-        mock_exists.return_value = False
-        
-        # Create mock canvas
+        mock_isfile.return_value = False
+
         mock_canvas = MagicMock()
-        
+
         draw_logo(mock_canvas, '/path/to/logo.png', 600, 800)
-        
-        # Should not call any drawing methods
+
+        mock_canvas.assert_not_called()
+
+    def test_draw_logo_none_source(self):
+        """No logo source should not touch the canvas."""
+        mock_canvas = MagicMock()
+        draw_logo(mock_canvas, None, 600, 800)
         mock_canvas.assert_not_called()
 
 

@@ -15,12 +15,20 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-        django-version: ['3.2', '4.0', '4.1', '4.2', '5.0']
+        django-version: ['3.2', '4.0', '4.1', '4.2', '5.0', '5.1', '5.2']
         exclude:
-          # Django 5.0 requires Python 3.10 or higher
+          # Django 5.0+ requires Python 3.10 or higher
           - django-version: '5.0'
             python-version: '3.8'
           - django-version: '5.0'
+            python-version: '3.9'
+          - django-version: '5.1'
+            python-version: '3.8'
+          - django-version: '5.1'
+            python-version: '3.9'
+          - django-version: '5.2'
+            python-version: '3.8'
+          - django-version: '5.2'
             python-version: '3.9'
 
     steps:
@@ -56,9 +64,10 @@ jobs:
         pip install -e .  # Install package locally
         pip install Django~=${{ matrix.django-version }}.0
         pip install coverage pytest pytest-django pytest-cov pytest-xdist
-        pip install django-model-utils>=4.3.1
+        pip install "django-model-utils>=4.0.0"
         pip install arabic-reshaper python-bidi
-        pip install reportlab
+        pip install "reportlab>=4.0.4,<5"
+        pip install "requests>=2.28.0"
         pip install Pillow  # For image handling tests
         
     - name: Create test directories
@@ -105,11 +114,11 @@ jobs:
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         flags: unittests
         name: codecov-umbrella
         token: ${{ secrets.CODECOV_TOKEN }}
-        
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
@@ -217,9 +226,10 @@ jobs:
         pip install -e .
         pip install Django~=${{ matrix.django-version }}.0
         pip install pytest pytest-django
-        pip install django-model-utils>=4.3.1
+        pip install "django-model-utils>=4.0.0"
         pip install arabic-reshaper python-bidi
-        pip install reportlab
+        pip install "reportlab>=4.0.4,<5"
+        pip install "requests>=2.28.0"
         pip install Pillow
         
     - name: Run Compatibility Tests
@@ -246,9 +256,10 @@ jobs:
         pip install -e .
         pip install Django~=4.2.0
         pip install pytest pytest-django pytest-benchmark
-        pip install django-model-utils>=4.3.1
+        pip install "django-model-utils>=4.0.0"
         pip install arabic-reshaper python-bidi
-        pip install reportlab
+        pip install "reportlab>=4.0.4,<5"
+        pip install "requests>=2.28.0"
         pip install Pillow
         
     - name: Run Performance Tests

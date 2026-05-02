@@ -7,7 +7,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from django.forms import TextInput
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 
@@ -62,8 +61,9 @@ class ColorField(models.CharField):
         super().__init__(*args, **kwargs)
 
     def formfield(self, **kwargs):
-        kwargs['widget'] = TextInput(attrs={'type': 'color'})
-        return super().formfield(**kwargs)
+        field = super().formfield(**kwargs)
+        field.widget.attrs.setdefault('type', 'color')
+        return field
 
 
 # Define the ExportPDFSettings model

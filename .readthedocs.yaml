@@ -1,6 +1,5 @@
-# .readthedocs.yaml
-# Read the Docs configuration file
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+# Read the Docs configuration
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html
 
 version: 2
 
@@ -16,4 +15,4 @@ python:
   install:
     - method: pip
       path: .
-    - requirements: requirements/docs.txt 
+    - requirements: docs/requirements.txt

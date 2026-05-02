@@ -107,3 +107,7 @@ class PdfAdmin(admin.ModelAdmin):
         css = {
             'all': ('admin/css/widgets.css',)
         }
+
+
+# Backward-compatible name for imports and tests
+ExportPDFSettingsAdmin = PdfAdmin

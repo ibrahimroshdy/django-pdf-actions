@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.admin.sites import AdminSite
 from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import getSampleStyleSheet
 from django_pdf_actions.actions import export_to_pdf_landscape, export_to_pdf_portrait
 from django_pdf_actions.actions.landscape import reshape_to_arabic as landscape_reshape_to_arabic
 from django_pdf_actions.actions.portrait import reshape_to_arabic as portrait_reshape_to_arabic
@@ -56,19 +57,18 @@ class PDFExportActionsTest(TestCase):
             'page_size': 'A4'
         })()
 
-    @patch('django_pdf_actions.actions.landscape.get_active_settings')
-    @patch('django_pdf_actions.actions.landscape.get_page_size')
-    @patch('django_pdf_actions.actions.landscape.setup_font')
-    @patch('django_pdf_actions.actions.landscape.get_logo_path')
-    @patch('django_pdf_actions.actions.landscape.hex_to_rgb')
-    @patch('django_pdf_actions.actions.landscape.create_table_style')
-    @patch('django_pdf_actions.actions.landscape.calculate_column_widths')
-    @patch('django_pdf_actions.actions.landscape.draw_model_name')
-    @patch('django_pdf_actions.actions.landscape.draw_exported_at')
-    @patch('django_pdf_actions.actions.landscape.draw_page_number')
-    @patch('django_pdf_actions.actions.landscape.draw_logo')
-    @patch('django_pdf_actions.actions.landscape.os.path.exists')
-    def test_landscape_export(self, mock_exists, mock_draw_logo, mock_draw_page, 
+    @patch('django_pdf_actions.actions.pdf_response.get_active_settings')
+    @patch('django_pdf_actions.actions.pdf_response.get_page_size')
+    @patch('django_pdf_actions.actions.pdf_response.setup_font')
+    @patch('django_pdf_actions.actions.pdf_response.get_logo_path')
+    @patch('django_pdf_actions.actions.pdf_response.hex_to_rgb')
+    @patch('django_pdf_actions.actions.pdf_response.create_table_style')
+    @patch('django_pdf_actions.actions.pdf_response.calculate_column_widths')
+    @patch('django_pdf_actions.actions.pdf_response.draw_model_name')
+    @patch('django_pdf_actions.actions.pdf_response.draw_exported_at')
+    @patch('django_pdf_actions.actions.pdf_response.draw_page_number')
+    @patch('django_pdf_actions.actions.pdf_response.draw_logo')
+    def test_landscape_export(self, mock_draw_logo, mock_draw_page, 
                              mock_draw_exported, mock_draw_model, mock_calc_widths,
                              mock_create_style, mock_hex_to_rgb, mock_get_logo,
                              mock_setup_font, mock_get_page_size, mock_get_settings):
@@ -81,7 +81,6 @@ class PDFExportActionsTest(TestCase):
         mock_hex_to_rgb.return_value = (0.94, 0.94, 0.94)
         mock_create_style.return_value = MagicMock()
         mock_calc_widths.return_value = [100, 100, 100]
-        mock_exists.return_value = True
         
         request = self.factory.get('/admin')
         request.user = self.user
@@ -96,19 +95,18 @@ class PDFExportActionsTest(TestCase):
             'attachment; filename="MockModel_export_'
         ))
 
-    @patch('django_pdf_actions.actions.portrait.get_active_settings')
-    @patch('django_pdf_actions.actions.portrait.get_page_size')
-    @patch('django_pdf_actions.actions.portrait.setup_font')
-    @patch('django_pdf_actions.actions.portrait.get_logo_path')
-    @patch('django_pdf_actions.actions.portrait.hex_to_rgb')
-    @patch('django_pdf_actions.actions.portrait.create_table_style')
-    @patch('django_pdf_actions.actions.portrait.calculate_column_widths')
-    @patch('django_pdf_actions.actions.portrait.draw_model_name')
-    @patch('django_pdf_actions.actions.portrait.draw_exported_at')
-    @patch('django_pdf_actions.actions.portrait.draw_page_number')
-    @patch('django_pdf_actions.actions.portrait.draw_logo')
-    @patch('django_pdf_actions.actions.portrait.os.path.exists')
-    def test_portrait_export(self, mock_exists, mock_draw_logo, mock_draw_page,
+    @patch('django_pdf_actions.actions.pdf_response.get_active_settings')
+    @patch('django_pdf_actions.actions.pdf_response.get_page_size')
+    @patch('django_pdf_actions.actions.pdf_response.setup_font')
+    @patch('django_pdf_actions.actions.pdf_response.get_logo_path')
+    @patch('django_pdf_actions.actions.pdf_response.hex_to_rgb')
+    @patch('django_pdf_actions.actions.pdf_response.create_table_style')
+    @patch('django_pdf_actions.actions.pdf_response.calculate_column_widths')
+    @patch('django_pdf_actions.actions.pdf_response.draw_model_name')
+    @patch('django_pdf_actions.actions.pdf_response.draw_exported_at')
+    @patch('django_pdf_actions.actions.pdf_response.draw_page_number')
+    @patch('django_pdf_actions.actions.pdf_response.draw_logo')
+    def test_portrait_export(self, mock_draw_logo, mock_draw_page,
                             mock_draw_exported, mock_draw_model, mock_calc_widths,
                             mock_create_style, mock_hex_to_rgb, mock_get_logo,
                             mock_setup_font, mock_get_page_size, mock_get_settings):
@@ -121,7 +119,6 @@ class PDFExportActionsTest(TestCase):
         mock_hex_to_rgb.return_value = (0.94, 0.94, 0.94)
         mock_create_style.return_value = MagicMock()
         mock_calc_widths.return_value = [100, 100, 100]
-        mock_exists.return_value = True
         
         request = self.factory.get('/admin')
         request.user = self.user
@@ -136,7 +133,7 @@ class PDFExportActionsTest(TestCase):
             'attachment; filename="MockModel_export_'
         ))
 
-    @patch('django_pdf_actions.actions.landscape.get_active_settings')
+    @patch('django_pdf_actions.actions.pdf_response.get_active_settings')
     def test_export_with_no_settings(self, mock_get_settings):
         """Test PDF export with no active settings."""
         mock_get_settings.return_value = None
@@ -150,7 +147,7 @@ class PDFExportActionsTest(TestCase):
         self.assertIsInstance(response, HttpResponse)
         self.assertEqual(response['Content-Type'], 'application/pdf')
 
-    @patch('django_pdf_actions.actions.portrait.get_active_settings')
+    @patch('django_pdf_actions.actions.pdf_response.get_active_settings')
     def test_portrait_export_with_no_settings(self, mock_get_settings):
         """Test portrait PDF export with no active settings."""
         mock_get_settings.return_value = None
@@ -166,16 +163,16 @@ class PDFExportActionsTest(TestCase):
 
     def test_landscape_export_page_size_rotation(self):
         """Test that landscape export rotates page size."""
-        with patch('django_pdf_actions.actions.landscape.get_active_settings') as mock_get_settings:
-            with patch('django_pdf_actions.actions.landscape.get_page_size') as mock_get_page_size:
+        with patch('django_pdf_actions.actions.pdf_response.get_active_settings') as mock_get_settings:
+            with patch('django_pdf_actions.actions.pdf_response.get_page_size') as mock_get_page_size:
                 mock_get_settings.return_value = self.settings
                 mock_get_page_size.return_value = A4
                 
                 request = self.factory.get('/admin')
                 request.user = self.user
                 
-                with patch('django_pdf_actions.actions.landscape.canvas.Canvas') as mock_canvas:
-                    with patch('django_pdf_actions.actions.landscape.reshape_to_arabic') as mock_reshape:
+                with patch('django_pdf_actions.actions.pdf_response.canvas.Canvas') as mock_canvas:
+                    with patch('django_pdf_actions.actions.pdf_response.reshape_to_arabic') as mock_reshape:
                         mock_reshape.return_value = [['Header'], ['Data']]
                         
                         export_to_pdf_landscape(
@@ -190,16 +187,16 @@ class PDFExportActionsTest(TestCase):
 
     def test_portrait_export_page_size_no_rotation(self):
         """Test that portrait export doesn't rotate page size."""
-        with patch('django_pdf_actions.actions.portrait.get_active_settings') as mock_get_settings:
-            with patch('django_pdf_actions.actions.portrait.get_page_size') as mock_get_page_size:
+        with patch('django_pdf_actions.actions.pdf_response.get_active_settings') as mock_get_settings:
+            with patch('django_pdf_actions.actions.pdf_response.get_page_size') as mock_get_page_size:
                 mock_get_settings.return_value = self.settings
                 mock_get_page_size.return_value = A4
                 
                 request = self.factory.get('/admin')
                 request.user = self.user
                 
-                with patch('django_pdf_actions.actions.portrait.canvas.Canvas') as mock_canvas:
-                    with patch('django_pdf_actions.actions.portrait.reshape_to_arabic') as mock_reshape:
+                with patch('django_pdf_actions.actions.pdf_response.canvas.Canvas') as mock_canvas:
+                    with patch('django_pdf_actions.actions.pdf_response.reshape_to_arabic') as mock_reshape:
                         mock_reshape.return_value = [['Header'], ['Data']]
                         
                         export_to_pdf_portrait(
@@ -213,14 +210,14 @@ class PDFExportActionsTest(TestCase):
 
     def test_landscape_export_different_rows_per_page(self):
         """Test landscape export uses different rows per page than portrait."""
-        with patch('django_pdf_actions.actions.landscape.get_active_settings') as mock_get_settings:
+        with patch('django_pdf_actions.actions.pdf_response.get_active_settings') as mock_get_settings:
             mock_get_settings.return_value = self.settings
             
             request = self.factory.get('/admin')
             request.user = self.user
             
-            with patch('django_pdf_actions.actions.landscape.canvas.Canvas') as mock_canvas:
-                with patch('django_pdf_actions.actions.landscape.reshape_to_arabic') as mock_reshape:
+            with patch('django_pdf_actions.actions.pdf_response.canvas.Canvas') as mock_canvas:
+                with patch('django_pdf_actions.actions.pdf_response.reshape_to_arabic') as mock_reshape:
                     mock_reshape.return_value = [['Header'], ['Data']]
                     
                     export_to_pdf_landscape(
@@ -232,14 +229,14 @@ class PDFExportActionsTest(TestCase):
 
     def test_portrait_export_different_rows_per_page(self):
         """Test portrait export uses different rows per page than landscape."""
-        with patch('django_pdf_actions.actions.portrait.get_active_settings') as mock_get_settings:
+        with patch('django_pdf_actions.actions.pdf_response.get_active_settings') as mock_get_settings:
             mock_get_settings.return_value = self.settings
             
             request = self.factory.get('/admin')
             request.user = self.user
             
-            with patch('django_pdf_actions.actions.portrait.canvas.Canvas') as mock_canvas:
-                with patch('django_pdf_actions.actions.portrait.reshape_to_arabic') as mock_reshape:
+            with patch('django_pdf_actions.actions.pdf_response.canvas.Canvas') as mock_canvas:
+                with patch('django_pdf_actions.actions.pdf_response.reshape_to_arabic') as mock_reshape:
                     mock_reshape.return_value = [['Header'], ['Data']]
                     
                     export_to_pdf_portrait(
@@ -251,14 +248,14 @@ class PDFExportActionsTest(TestCase):
 
     def test_landscape_export_different_chars_per_line(self):
         """Test landscape export uses different chars per line than portrait."""
-        with patch('django_pdf_actions.actions.landscape.get_active_settings') as mock_get_settings:
+        with patch('django_pdf_actions.actions.pdf_response.get_active_settings') as mock_get_settings:
             mock_get_settings.return_value = self.settings
             
             request = self.factory.get('/admin')
             request.user = self.user
             
-            with patch('django_pdf_actions.actions.landscape.canvas.Canvas') as mock_canvas:
-                with patch('django_pdf_actions.actions.landscape.reshape_to_arabic') as mock_reshape:
+            with patch('django_pdf_actions.actions.pdf_response.canvas.Canvas') as mock_canvas:
+                with patch('django_pdf_actions.actions.pdf_response.reshape_to_arabic') as mock_reshape:
                     mock_reshape.return_value = [['Header'], ['Data']]
                     
                     export_to_pdf_landscape(
@@ -270,14 +267,14 @@ class PDFExportActionsTest(TestCase):
 
     def test_portrait_export_different_chars_per_line(self):
         """Test portrait export uses different chars per line than landscape."""
-        with patch('django_pdf_actions.actions.portrait.get_active_settings') as mock_get_settings:
+        with patch('django_pdf_actions.actions.pdf_response.get_active_settings') as mock_get_settings:
             mock_get_settings.return_value = self.settings
             
             request = self.factory.get('/admin')
             request.user = self.user
             
-            with patch('django_pdf_actions.actions.portrait.canvas.Canvas') as mock_canvas:
-                with patch('django_pdf_actions.actions.portrait.reshape_to_arabic') as mock_reshape:
+            with patch('django_pdf_actions.actions.pdf_response.canvas.Canvas') as mock_canvas:
+                with patch('django_pdf_actions.actions.pdf_response.reshape_to_arabic') as mock_reshape:
                     mock_reshape.return_value = [['Header'], ['Data']]
                     
                     export_to_pdf_portrait(
@@ -307,10 +304,10 @@ class ReshapeToArabicTest(TestCase):
             'header_alignment': 'CENTER',
         })()
 
-    @patch('django_pdf_actions.actions.landscape.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_landscape_reshape_to_arabic_basic(self, mock_create_style):
         """Test basic functionality of landscape reshape_to_arabic."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         columns = ['id', 'name', 'email']
@@ -325,10 +322,10 @@ class ReshapeToArabicTest(TestCase):
         # Check that header style was created
         self.assertEqual(mock_create_style.call_count, 2)  # Header and body styles
 
-    @patch('django_pdf_actions.actions.portrait.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_portrait_reshape_to_arabic_basic(self, mock_create_style):
         """Test basic functionality of portrait reshape_to_arabic."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         columns = ['id', 'name', 'email']
@@ -343,18 +340,18 @@ class ReshapeToArabicTest(TestCase):
         # Check that header style was created
         self.assertEqual(mock_create_style.call_count, 2)  # Header and body styles
 
-    @patch('django_pdf_actions.actions.landscape.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_landscape_reshape_to_arabic_with_rtl(self, mock_create_style):
         """Test landscape reshape_to_arabic with RTL support."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         self.settings.rtl_support = True
         
         columns = ['id', 'name', 'email']
         
-        with patch('django_pdf_actions.actions.landscape.arabic_reshaper') as mock_arabic:
-            with patch('django_pdf_actions.actions.landscape.get_display') as mock_display:
+        with patch('django_pdf_actions.actions.utils.arabic_reshaper') as mock_arabic:
+            with patch('django_pdf_actions.actions.utils.get_display') as mock_display:
                 mock_arabic.reshape.return_value = 'reshaped_text'
                 mock_display.return_value = 'display_text'
                 
@@ -366,18 +363,18 @@ class ReshapeToArabicTest(TestCase):
                 self.assertTrue(mock_arabic.reshape.called)
                 self.assertTrue(mock_display.called)
 
-    @patch('django_pdf_actions.actions.portrait.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_portrait_reshape_to_arabic_with_rtl(self, mock_create_style):
         """Test portrait reshape_to_arabic with RTL support."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         self.settings.rtl_support = True
         
         columns = ['id', 'name', 'email']
         
-        with patch('django_pdf_actions.actions.portrait.arabic_reshaper') as mock_arabic:
-            with patch('django_pdf_actions.actions.portrait.get_display') as mock_display:
+        with patch('django_pdf_actions.actions.utils.arabic_reshaper') as mock_arabic:
+            with patch('django_pdf_actions.actions.utils.get_display') as mock_display:
                 mock_arabic.reshape.return_value = 'reshaped_text'
                 mock_display.return_value = 'display_text'
                 
@@ -389,18 +386,18 @@ class ReshapeToArabicTest(TestCase):
                 self.assertTrue(mock_arabic.reshape.called)
                 self.assertTrue(mock_display.called)
 
-    @patch('django_pdf_actions.actions.landscape.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_landscape_reshape_to_arabic_column_reversal_rtl(self, mock_create_style):
         """Test that landscape reshape_to_arabic reverses columns for RTL."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         self.settings.rtl_support = True
         
         columns = ['id', 'name', 'email']
         
-        with patch('django_pdf_actions.actions.landscape.arabic_reshaper') as mock_arabic:
-            with patch('django_pdf_actions.actions.landscape.get_display') as mock_display:
+        with patch('django_pdf_actions.actions.utils.arabic_reshaper') as mock_arabic:
+            with patch('django_pdf_actions.actions.utils.get_display') as mock_display:
                 mock_arabic.reshape.return_value = 'reshaped_text'
                 mock_display.return_value = 'display_text'
                 
@@ -411,18 +408,18 @@ class ReshapeToArabicTest(TestCase):
                 # For RTL, columns should be reversed
                 # This is tested indirectly through the function behavior
 
-    @patch('django_pdf_actions.actions.portrait.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_portrait_reshape_to_arabic_column_reversal_rtl(self, mock_create_style):
         """Test that portrait reshape_to_arabic reverses columns for RTL."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         self.settings.rtl_support = True
         
         columns = ['id', 'name', 'email']
         
-        with patch('django_pdf_actions.actions.portrait.arabic_reshaper') as mock_arabic:
-            with patch('django_pdf_actions.actions.portrait.get_display') as mock_display:
+        with patch('django_pdf_actions.actions.utils.arabic_reshaper') as mock_arabic:
+            with patch('django_pdf_actions.actions.utils.get_display') as mock_display:
                 mock_arabic.reshape.return_value = 'reshaped_text'
                 mock_display.return_value = 'display_text'
                 
@@ -433,10 +430,10 @@ class ReshapeToArabicTest(TestCase):
                 # For RTL, columns should be reversed
                 # This is tested indirectly through the function behavior
 
-    @patch('django_pdf_actions.actions.landscape.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_landscape_reshape_to_arabic_long_text_wrapping(self, mock_create_style):
         """Test landscape reshape_to_arabic handles long text wrapping."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         # Create object with long text
@@ -457,10 +454,10 @@ class ReshapeToArabicTest(TestCase):
         # Should have processed the long text
         self.assertEqual(len(data), 2)  # 1 header row + 1 data row
 
-    @patch('django_pdf_actions.actions.portrait.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_portrait_reshape_to_arabic_long_text_wrapping(self, mock_create_style):
         """Test portrait reshape_to_arabic handles long text wrapping."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         # Create object with long text
@@ -481,10 +478,10 @@ class ReshapeToArabicTest(TestCase):
         # Should have processed the long text
         self.assertEqual(len(data), 2)  # 1 header row + 1 data row
 
-    @patch('django_pdf_actions.actions.landscape.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_landscape_reshape_to_arabic_with_none_settings(self, mock_create_style):
         """Test landscape reshape_to_arabic with None settings."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         columns = ['id', 'name', 'email']
@@ -495,10 +492,10 @@ class ReshapeToArabicTest(TestCase):
         # Should work without settings
         self.assertEqual(len(data), 3)  # 1 header row + 2 data rows
 
-    @patch('django_pdf_actions.actions.portrait.create_header_style')
+    @patch('django_pdf_actions.actions.utils.create_header_style')
     def test_portrait_reshape_to_arabic_with_none_settings(self, mock_create_style):
         """Test portrait reshape_to_arabic with None settings."""
-        mock_style = MagicMock()
+        mock_style = getSampleStyleSheet()['Normal']
         mock_create_style.return_value = mock_style
         
         columns = ['id', 'name', 'email']

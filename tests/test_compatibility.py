@@ -137,9 +137,9 @@ class DjangoVersionCompatibilityTest(TestCase):
         result = capfirst("hello")
         self.assertEqual(result, "Hello")
         
-        # Test gettext_lazy
+        # Test gettext_lazy (translation delayed until coercion / rendering)
         lazy_text = _("Hello")
-        self.assertIsInstance(lazy_text, str)
+        self.assertEqual(str(lazy_text), "Hello")
 
 
 class ReportLabCompatibilityTest(TestCase):
@@ -168,9 +168,9 @@ class ReportLabCompatibilityTest(TestCase):
         from reportlab.platypus import Paragraph, Table
         from reportlab.lib.styles import ParagraphStyle
         
-        # Test colors
-        self.assertIsInstance(colors.red, tuple)
-        self.assertIsInstance(colors.blue, tuple)
+        # Test colors (ReportLab exposes Color objects, not bare RGB tuples)
+        self.assertIsInstance(colors.red, colors.Color)
+        self.assertIsInstance(colors.blue, colors.Color)
         
         # Test page sizes
         self.assertIsInstance(A4, tuple)
@@ -619,3 +619,4 @@ class PerformanceCompatibilityTest(TestCase):
         
         self.assertIsInstance(response, HttpResponse)
         self.assertEqual(response['Content-Type'], 'application/pdf')
+
