@@ -1,1 +1,1 @@
-"""Test suite for django-pdf-export.""" 
+"""Test suite for django-pdf-export."""

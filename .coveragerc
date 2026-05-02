@@ -1,0 +1,43 @@
+[run]
+source = django_pdf_actions
+omit = 
+    */migrations/*
+    */tests/*
+    */venv/*
+    */env/*
+    */__pycache__/*
+    */settings/*
+    */manage.py
+    */conftest.py
+    */test_*.py
+    */tests.py
+    */admin.py
+    */apps.py
+    */urls.py
+    */wsgi.py
+    */asgi.py
+    */__init__.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+
+show_missing = True
+skip_covered = False
+precision = 2
+
+[html]
+directory = htmlcov
+title = Django PDF Actions Coverage Report
+
+[xml]
+output = coverage.xml

@@ -15,7 +15,10 @@ class Migration(migrations.Migration):
             name="rtl_support",
             field=models.BooleanField(
                 default=False,
-                help_text="Enable right-to-left (RTL) text support for Arabic and other RTL languages",
+                help_text=(
+                    "Enable right-to-left (RTL) text support for Arabic and "
+                    "other RTL languages"
+                ),
             ),
         ),
         migrations.AlterField(

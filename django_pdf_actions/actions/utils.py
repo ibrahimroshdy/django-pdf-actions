@@ -1,25 +1,34 @@
 """Utility functions for PDF export actions"""
 
+import hashlib
+import logging
 import os
+from io import BytesIO
+from typing import Optional
 
+import arabic_reshaper
+from bidi.algorithm import get_display
 from django.conf import settings
+from django.core.exceptions import FieldDoesNotExist, MultipleObjectsReturned
 from django.utils.text import capfirst
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, A3, A2, A1
+from reportlab.lib.pagesizes import A1, A2, A3, A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import Paragraph, Table, TableStyle
 
 from ..models import ExportPDFSettings
 
+logger = logging.getLogger(__name__)
+
 # Page size mapping
 PAGE_SIZE_MAP = {
-    'A4': A4,
-    'A3': A3,
-    'A2': A2,
-    'A1': A1,
+    "A4": A4,
+    "A3": A3,
+    "A2": A2,
+    "A1": A1,
 }
 
 
@@ -36,46 +45,120 @@ def get_active_settings():
         return ExportPDFSettings.objects.get(active=True)
     except ExportPDFSettings.DoesNotExist:
         return None
+    except MultipleObjectsReturned:
+        logger.warning(
+            "Multiple ExportPDFSettings rows have active=True; using the first by primary key."
+        )
+        return ExportPDFSettings.objects.filter(active=True).order_by("pk").first()
+
+
+def resolve_font_path(filename: str) -> Optional[str]:
+    """Resolve a font file to an absolute path.
+
+    Order:
+    1. ``<BASE_DIR>/static/assets/fonts/<filename>`` (common project layout)
+    2. Django staticfiles finders: ``assets/fonts/``, ``django_pdf_actions/fonts/``, or bare name
+    """
+    if not filename:
+        return None
+
+    project_path = os.path.join(
+        settings.BASE_DIR, "static", "assets", "fonts", filename
+    )
+    if os.path.isfile(project_path):
+        return project_path
+
+    try:
+        from django.contrib.staticfiles import finders
+
+        for rel in (
+            os.path.join("assets", "fonts", filename),
+            os.path.join("django_pdf_actions", "fonts", filename),
+            filename,
+        ):
+            found = finders.find(rel)
+            if found and os.path.isfile(found):
+                return found
+    except Exception as exc:
+        logger.debug("Staticfiles font lookup skipped: %s", exc)
+
+    return None
 
 
 def hex_to_rgb(hex_color):
-    """Convert hex color to RGB tuple"""
-    hex_color = hex_color.lstrip('#')
-    return tuple(int(hex_color[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+    """Convert hex color (#RGB or #RRGGBB) to an RGB tuple of floats in 0..1."""
+    hex_color = hex_color.lstrip("#")
+    if len(hex_color) == 3:
+        hex_color = "".join(c * 2 for c in hex_color)
+    return tuple(int(hex_color[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
 
 
 def setup_font(pdf_settings):
-    """Setup and register font"""
-    font_name = 'PDF_Font'
-
-    # Try to get font from settings
+    """Register a TTF for PDF export; idempotent per resolved path within the process."""
+    candidates = []
     if pdf_settings and pdf_settings.font_name:
-        font_path = os.path.join(settings.BASE_DIR, 'static', 'assets', 'fonts', pdf_settings.font_name)
-        if os.path.exists(font_path):
-            try:
-                pdfmetrics.registerFont(TTFont(font_name, font_path, 'utf-8'))
-                return font_name
-            except Exception as e:
-                print(f"Error loading font {pdf_settings.font_name}: {str(e)}")
+        path = resolve_font_path(pdf_settings.font_name)
+        if path:
+            candidates.append((pdf_settings.font_name, path))
+    default_path = resolve_font_path("DejaVuSans.ttf")
+    if default_path and all(p != default_path for _, p in candidates):
+        candidates.append(("DejaVuSans.ttf", default_path))
 
-    # Try default font
-    default_font = os.path.join(settings.BASE_DIR, 'static', 'assets', 'fonts', 'DejaVuSans.ttf')
-    if os.path.exists(default_font):
+    for label, font_path in candidates:
+        digest = hashlib.sha256(os.path.abspath(font_path).encode()).hexdigest()[:12]
+        internal_name = f"PdfAct_{digest}"
+        if internal_name in pdfmetrics.getRegisteredFontNames():
+            return internal_name
         try:
-            pdfmetrics.registerFont(TTFont(font_name, default_font, 'utf-8'))
-            return font_name
-        except Exception as e:
-            print(f"Error loading default font: {str(e)}")
+            pdfmetrics.registerFont(TTFont(internal_name, font_path, "utf-8"))
+            return internal_name
+        except Exception as exc:
+            logger.warning(
+                "Error loading font %s from %s: %s",
+                label,
+                font_path,
+                exc,
+            )
 
-    # If all else fails, use Helvetica (built into ReportLab)
-    return 'Helvetica'
+    logger.info("Falling back to built-in Helvetica (no TTF resolved)")
+    return "Helvetica"
 
 
 def get_logo_path(pdf_settings):
-    """Get logo file path"""
-    if pdf_settings and pdf_settings.logo and pdf_settings.show_logo:
-        return pdf_settings.logo.path
-    return os.path.join(settings.MEDIA_ROOT, 'export_pdf/logo.png')
+    """Resolve logo for ReportLab: local filesystem path, or ImageReader for remote storage.
+
+    Returns ``None`` when the logo should not be drawn (disabled, missing file, or no settings).
+    """
+    if not pdf_settings or not getattr(pdf_settings, "show_logo", True):
+        return None
+    logo = getattr(pdf_settings, "logo", None)
+    if not logo:
+        return None
+    name = getattr(logo, "name", "") or ""
+    if not name:
+        return None
+
+    if hasattr(logo, "path"):
+        try:
+            path = logo.path
+            if path and os.path.isfile(path):
+                return path
+        except (ValueError, NotImplementedError):
+            pass
+
+    storage = logo.storage
+    try:
+        if hasattr(storage, "path"):
+            path = storage.path(name)
+            if path and os.path.isfile(path):
+                return path
+    except NotImplementedError:
+        pass
+
+    from reportlab.lib.utils import ImageReader
+
+    with storage.open(name, "rb") as fh:
+        return ImageReader(BytesIO(fh.read()))
 
 
 def create_table_style(pdf_settings, font_name, header_bg_color, grid_color):
@@ -86,39 +169,36 @@ def create_table_style(pdf_settings, font_name, header_bg_color, grid_color):
     grid_line_width = pdf_settings.grid_line_width if pdf_settings else 0.25
     table_spacing = pdf_settings.table_spacing if pdf_settings else 1.5
 
-    # Determine cell alignment based on RTL setting and content_alignment
-    # 'LEFT', 'CENTER', 'RIGHT'
-    cell_alignment = 'CENTER'  # Default is center
-
-    # Use explicit alignment settings if available
-    if pdf_settings and hasattr(pdf_settings, 'content_alignment'):
-        cell_alignment = pdf_settings.content_alignment
-    # Otherwise fall back to RTL-based alignment
-    elif pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
-        cell_alignment = 'RIGHT'  # For RTL languages, default to right alignment
-
-    # For header alignment
-    header_alignment = 'CENTER'  # Default for headers
-    if pdf_settings and hasattr(pdf_settings, 'header_alignment'):
-        header_alignment = pdf_settings.header_alignment
+    # Cell / header alignment: explicit LEFT/RIGHT wins; CENTER + RTL uses RIGHT for body cells.
+    cell_alignment = "CENTER"
+    header_alignment = "CENTER"
+    if pdf_settings:
+        cell_alignment = (
+            getattr(pdf_settings, "content_alignment", "CENTER") or "CENTER"
+        )
+        header_alignment = (
+            getattr(pdf_settings, "header_alignment", "CENTER") or "CENTER"
+        )
+        if pdf_settings.rtl_support and cell_alignment == "CENTER":
+            cell_alignment = "RIGHT"
 
     # Build table style
     style = [
-        ('FONT', (0, 0), (-1, -1), font_name, body_font_size),  # Body font
-        ('FONT', (0, 0), (-1, 0), font_name, header_font_size),  # Header font
-        ('FONTWEIGHT', (0, 0), (-1, 0), 'bold'),  # Make header row bold
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-        ('BACKGROUND', (0, 0), (-1, 0), header_bg_color),
-        ('GRID', (0, 0), (-1, -1), grid_line_width, grid_color),
-        ('ALIGN', (0, 1), (-1, -1), cell_alignment),  # Content alignment
-        ('ALIGN', (0, 0), (-1, 0), header_alignment),  # Header alignment
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOX', (0, 0), (-1, -1), grid_line_width, grid_color),
-        ('INNERGRID', (0, 0), (-1, -1), grid_line_width, grid_color),
-        ('TOPPADDING', (0, 0), (-1, -1), table_spacing * mm),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), table_spacing * mm),
-        ('LEFTPADDING', (0, 0), (-1, -1), table_spacing * 2 * mm),
-        ('RIGHTPADDING', (0, 0), (-1, -1), table_spacing * 2 * mm),
+        ("FONT", (0, 0), (-1, -1), font_name, body_font_size),  # Body font
+        ("FONT", (0, 0), (-1, 0), font_name, header_font_size),  # Header font
+        ("FONTWEIGHT", (0, 0), (-1, 0), "bold"),  # Make header row bold
+        ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+        ("BACKGROUND", (0, 0), (-1, 0), header_bg_color),
+        ("GRID", (0, 0), (-1, -1), grid_line_width, grid_color),
+        ("ALIGN", (0, 1), (-1, -1), cell_alignment),  # Content alignment
+        ("ALIGN", (0, 0), (-1, 0), header_alignment),  # Header alignment
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("BOX", (0, 0), (-1, -1), grid_line_width, grid_color),
+        ("INNERGRID", (0, 0), (-1, -1), grid_line_width, grid_color),
+        ("TOPPADDING", (0, 0), (-1, -1), table_spacing * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), table_spacing * mm),
+        ("LEFTPADDING", (0, 0), (-1, -1), table_spacing * 2 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), table_spacing * 2 * mm),
     ]
 
     return TableStyle(style)
@@ -130,53 +210,152 @@ def create_header_style(pdf_settings, font_name, is_header=False):
 
     # Use proper font sizes from settings
     if pdf_settings:
-        font_size = pdf_settings.header_font_size if is_header else pdf_settings.body_font_size
+        font_size = (
+            pdf_settings.header_font_size if is_header else pdf_settings.body_font_size
+        )
     else:
         font_size = 12 if is_header else 8
 
-    # Determine text alignment based on RTL setting and alignment settings
-    # 0 = left, 1 = center, 2 = right
-    alignment = 1  # Default is center
-    
-    # Check for explicit alignment settings
+    # 0 = left, 1 = center, 2 = right. RTL: treat CENTER content as RIGHT for body paragraphs.
+    alignment = 1
     if pdf_settings:
-        if is_header and hasattr(pdf_settings, 'header_alignment'):
-            if pdf_settings.header_alignment == 'LEFT':
+        if is_header:
+            ha = getattr(pdf_settings, "header_alignment", "CENTER") or "CENTER"
+            if ha == "LEFT":
                 alignment = 0
-            elif pdf_settings.header_alignment == 'RIGHT':
+            elif ha == "RIGHT":
                 alignment = 2
-        elif not is_header and hasattr(pdf_settings, 'content_alignment'):
-            if pdf_settings.content_alignment == 'LEFT':
+            else:
+                alignment = 1
+        else:
+            ca = getattr(pdf_settings, "content_alignment", "CENTER") or "CENTER"
+            if ca == "LEFT":
                 alignment = 0
-            elif pdf_settings.content_alignment == 'RIGHT':
+            elif ca == "RIGHT":
                 alignment = 2
-    
-    # Override alignment based on RTL if no explicit setting
-    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
-        # For RTL languages, apply right alignment if not explicitly set
-        if not (hasattr(pdf_settings, 'content_alignment') or hasattr(pdf_settings, 'header_alignment')):
-            alignment = 2 if not is_header else 1  # Right-align for body text in RTL mode, center for headers
-    
+            else:
+                alignment = 1
+        if getattr(pdf_settings, "rtl_support", False) and not is_header:
+            if (
+                getattr(pdf_settings, "content_alignment", "CENTER") or "CENTER"
+            ) == "CENTER":
+                alignment = 2
+
     style = ParagraphStyle(
-        'CustomHeader' if is_header else 'CustomBody',
-        parent=styles['Normal'],
+        "CustomHeader" if is_header else "CustomBody",
+        parent=styles["Normal"],
         fontSize=font_size,
         fontName=font_name,
         alignment=alignment,
         spaceAfter=2 * mm,
         leading=font_size * 1.2,  # Line height
         textColor=colors.black,
-        fontWeight='bold' if is_header else 'normal'  # Make headers bold
+        fontWeight="bold" if is_header else "normal",  # Make headers bold
     )
-    
+
     # ReportLab doesn't support direct CSS for RTL
     # The text direction is handled by the arabic_reshaper and get_display functions
-    
+
     return style
+
+
+def reshape_to_arabic(
+    columns,
+    font_name,
+    font_size,
+    queryset,
+    max_chars_per_line,
+    pdf_settings=None,
+    modeladmin=None,
+):
+    """Build ReportLab table rows from ``list_display`` columns (fields + admin methods)."""
+    header_style = create_header_style(pdf_settings, font_name, is_header=True)
+    body_style = create_header_style(pdf_settings, font_name, is_header=False)
+
+    rtl_enabled = pdf_settings and getattr(pdf_settings, "rtl_support", False)
+
+    if rtl_enabled:
+        columns = list(reversed(columns))
+
+    headers = []
+    for column in columns:
+        header = None
+
+        if hasattr(queryset.model, column):
+            try:
+                field = queryset.model._meta.get_field(column)
+                header = (
+                    capfirst(field.verbose_name)
+                    if hasattr(field, "verbose_name")
+                    else capfirst(column)
+                )
+            except FieldDoesNotExist:
+                header = capfirst(column.replace("_", " "))
+        elif modeladmin and hasattr(modeladmin, column):
+            method = getattr(modeladmin, column)
+            if hasattr(method, "short_description"):
+                header = str(method.short_description)
+            else:
+                header = capfirst(column.replace("_", " "))
+        else:
+            header = capfirst(column.replace("_", " "))
+
+        if rtl_enabled and isinstance(header, str):
+            header = arabic_reshaper.reshape(header)
+            header = get_display(header)
+
+        headers.append(Paragraph(str(header), header_style))
+
+    data = [headers]
+
+    for obj in queryset:
+        row = []
+        for column in columns:
+            value = None
+            if hasattr(obj, column):
+                value = getattr(obj, column)
+            elif modeladmin and hasattr(modeladmin, column):
+                try:
+                    method = getattr(modeladmin, column)
+                    if callable(method):
+                        value = method(obj)
+                    else:
+                        value = method
+                except Exception as exc:
+                    logger.debug(
+                        "Admin list_display value for %r failed: %s",
+                        column,
+                        exc,
+                        exc_info=True,
+                    )
+                    value = f"Error: {column}"
+            else:
+                value = f"Missing: {column}"
+
+            value = str(value) if value is not None else ""
+
+            if isinstance(value, str):
+                if rtl_enabled:
+                    value = arabic_reshaper.reshape(value)
+                    value = get_display(value)
+
+                if len(value) > max_chars_per_line:
+                    lines = [
+                        value[i : i + max_chars_per_line]
+                        for i in range(0, len(value), max_chars_per_line)
+                    ]
+                    if rtl_enabled:
+                        lines.reverse()
+                    value = "<br/>".join(lines)
+            row.append(Paragraph(str(value), body_style))
+        data.append(row)
+    return data
 
 
 def calculate_column_widths(data, table_width, font_name, font_size):
     """Calculate optimal column widths based on content"""
+    if not data:
+        return []
     num_cols = len(data[0])
     max_widths = [0] * num_cols
 
@@ -198,7 +377,17 @@ def calculate_column_widths(data, table_width, font_name, font_size):
     return [width / total_width * table_width for width in max_widths]
 
 
-def draw_table_data(p, page, rows_per_page, total_rows, col_widths, table_style, canvas_height, table_top_margin, data):
+def draw_table_data(
+    p,
+    page,
+    rows_per_page,
+    total_rows,
+    col_widths,
+    table_style,
+    canvas_height,
+    table_top_margin,
+    data,
+):
     """Draw table data for current page"""
     start_row = page * rows_per_page + 1
     end_row = min((page + 1) * rows_per_page + 1, total_rows + 1)
@@ -210,25 +399,36 @@ def draw_table_data(p, page, rows_per_page, total_rows, col_widths, table_style,
     table.drawOn(p, 100, y)
 
 
-def draw_model_name(p, modeladmin, font_name, font_size, canvas_width, canvas_height, page_margin):
+def draw_model_name(
+    p,
+    modeladmin,
+    font_name,
+    font_size,
+    canvas_width,
+    canvas_height,
+    page_margin,
+    pdf_settings=None,
+):
     """Draw model name header"""
     # Try to get verbose_name_plural, then verbose_name, then fall back to __name__
     model = modeladmin.model
 
-    if hasattr(model._meta, 'verbose_name_plural') and model._meta.verbose_name_plural:
+    if hasattr(model._meta, "verbose_name_plural") and model._meta.verbose_name_plural:
         model_name = str(capfirst(model._meta.verbose_name_plural))
-    elif hasattr(model._meta, 'verbose_name') and model._meta.verbose_name:
+    elif hasattr(model._meta, "verbose_name") and model._meta.verbose_name:
         model_name = str(capfirst(model._meta.verbose_name))
     else:
         model_name = model.__name__
 
-    # Get settings to check if RTL is enabled
-    pdf_settings = get_active_settings()
+    if pdf_settings is None:
+        pdf_settings = get_active_settings()
 
     # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
-    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
-        import arabic_reshaper
-        from bidi.algorithm import get_display
+    if (
+        pdf_settings
+        and hasattr(pdf_settings, "rtl_support")
+        and pdf_settings.rtl_support
+    ):
         model_name = arabic_reshaper.reshape(model_name)
         model_name = get_display(model_name)
 
@@ -236,39 +436,52 @@ def draw_model_name(p, modeladmin, font_name, font_size, canvas_width, canvas_he
     model_name_string_width = p.stringWidth(model_name, font_name, font_size)
 
     # Use title_alignment if available
-    if pdf_settings and hasattr(pdf_settings, 'title_alignment'):
+    if pdf_settings and hasattr(pdf_settings, "title_alignment"):
         alignment = pdf_settings.title_alignment
-        if alignment == 'LEFT':
+        if alignment == "LEFT":
             x = page_margin + 10  # Left aligned with margin
-        elif alignment == 'RIGHT':
-            x = canvas_width - model_name_string_width - page_margin - 10  # Right aligned with margin
+        elif alignment == "RIGHT":
+            x = (
+                canvas_width - model_name_string_width - page_margin - 10
+            )  # Right aligned with margin
         else:  # CENTER is default
             x = canvas_width / 2
     else:
         # Default center alignment
         x = canvas_width / 2
 
-    # Check if we should use drawString or drawCentredString based on alignment
-    if (pdf_settings and hasattr(pdf_settings, 'title_alignment') and  pdf_settings.title_alignment == 'CENTER') or not hasattr(pdf_settings, 'title_alignment'):
+    if pdf_settings is None:
+        use_centred_string = True
+    elif getattr(pdf_settings, "title_alignment", "CENTER") == "CENTER":
+        use_centred_string = True
+    else:
+        use_centred_string = False
+
+    if use_centred_string:
         p.drawCentredString(x, canvas_height - page_margin, model_name)
     else:
         p.drawString(x, canvas_height - page_margin, model_name)
 
 
-def draw_exported_at(p, font_name, font_size, canvas_width, footer_margin):
+def draw_exported_at(
+    p, font_name, font_size, canvas_width, footer_margin, pdf_settings=None
+):
     """Draw export timestamp"""
     from datetime import datetime
+
     export_date_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Get settings to check if RTL is enabled
-    pdf_settings = get_active_settings()
+    if pdf_settings is None:
+        pdf_settings = get_active_settings()
 
     exported_at_string = f"Exported at: {export_date_time}"
 
     # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
-    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
-        import arabic_reshaper
-        from bidi.algorithm import get_display
+    if (
+        pdf_settings
+        and hasattr(pdf_settings, "rtl_support")
+        and pdf_settings.rtl_support
+    ):
         exported_at_string = arabic_reshaper.reshape(exported_at_string)
         exported_at_string = get_display(exported_at_string)
 
@@ -276,42 +489,62 @@ def draw_exported_at(p, font_name, font_size, canvas_width, footer_margin):
     exported_at_string_width = p.stringWidth(exported_at_string, font_name, font_size)
 
     # Position string appropriately based on RTL setting
-    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
+    if (
+        pdf_settings
+        and hasattr(pdf_settings, "rtl_support")
+        and pdf_settings.rtl_support
+    ):
         x = 100  # For RTL, align to the left side with margin
     else:
-        x = canvas_width - exported_at_string_width - 100  # For LTR, align to the right side with margin
+        x = (
+            canvas_width - exported_at_string_width - 100
+        )  # For LTR, align to the right side with margin
 
     p.drawString(x, footer_margin, exported_at_string)
 
 
-def draw_page_number(p, page, total_pages, font_name, font_size, canvas_width, footer_margin):
+def draw_page_number(
+    p,
+    page,
+    total_pages,
+    font_name,
+    font_size,
+    canvas_width,
+    footer_margin,
+    pdf_settings=None,
+):
     """Draw page numbers"""
-    # Get settings to check if RTL is enabled
-    pdf_settings = get_active_settings()
+    if pdf_settings is None:
+        pdf_settings = get_active_settings()
 
     page_string = f"Page {page + 1} of {total_pages}"
 
     # Apply Arabic reshaping and bidirectional algorithm if RTL support is enabled
-    if pdf_settings and hasattr(pdf_settings, 'rtl_support') and pdf_settings.rtl_support:
-        import arabic_reshaper
-        from bidi.algorithm import get_display
+    if (
+        pdf_settings
+        and hasattr(pdf_settings, "rtl_support")
+        and pdf_settings.rtl_support
+    ):
         page_string = arabic_reshaper.reshape(page_string)
         page_string = get_display(page_string)
 
     p.setFont(font_name, font_size)
-    page_string_width = p.stringWidth(page_string, font_name, font_size)
     x = canvas_width / 2
     p.drawCentredString(x, footer_margin, page_string)
 
 
-def draw_logo(p, logo_file, canvas_width, canvas_height):
-    """Draw logo if it exists"""
-    if os.path.exists(logo_file):
-        from reportlab.platypus import Image
-        logo_width = 100
-        logo_height = 50
-        logo_offset = 20
-        logo_x = canvas_width - logo_width - logo_offset
-        logo_y = canvas_height - logo_height - logo_offset
-        logo = Image(logo_file, width=logo_width, height=logo_height)
-        logo.drawOn(p, logo_x, logo_y)
+def draw_logo(p, logo_source, canvas_width, canvas_height):
+    """Draw logo from a filesystem path or a ReportLab ``ImageReader`` (remote storage)."""
+    if logo_source is None:
+        return
+    if isinstance(logo_source, str) and not os.path.isfile(logo_source):
+        return
+    from reportlab.platypus import Image
+
+    logo_width = 100
+    logo_height = 50
+    logo_offset = 20
+    logo_x = canvas_width - logo_width - logo_offset
+    logo_y = canvas_height - logo_height - logo_offset
+    logo = Image(logo_source, width=logo_width, height=logo_height)
+    logo.drawOn(p, logo_x, logo_y)

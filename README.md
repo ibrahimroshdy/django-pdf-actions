@@ -1,12 +1,12 @@
 # Django PDF Actions
 
-<p align="center"> 
-  <img src="docs/assets/logo.png" alt="Django PDF Actions Logo" width="200" height="200">
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="Django PDF Actions Logo" width="200" height="200">
 </p>
 
 [![PyPI version](https://img.shields.io/pypi/v/django-pdf-actions.svg?cache=no)](https://pypi.org/project/django-pdf-actions/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/django-pdf-actions.svg)](https://pypi.org/project/django-pdf-actions/)
-[![Django Versions](https://img.shields.io/badge/django-3.2%20%7C%204.0%20%7C%204.1%20%7C%204.2%20%7C%205.0-green.svg)](https://pypi.org/project/django-pdf-actions/)
+[![Django Versions](https://img.shields.io/badge/django-3.2%20%E2%80%93%205.2-green.svg)](https://pypi.org/project/django-pdf-actions/)
 [![Documentation](https://img.shields.io/badge/docs-github_pages-blue.svg)](https://ibrahimroshdy.github.io/django-pdf-actions/)
 [![Documentation Status](https://readthedocs.org/projects/django-pdf-actions/badge/?version=latest)](https://django-pdf-actions.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -20,7 +20,7 @@ A Django application that adds PDF export capabilities to your Django admin inte
 
 ## Prerequisites
 
-Before installing Django PDF Export, ensure you have:
+Before installing **django-pdf-actions**, ensure you have:
 - Python 3.8 or higher
 - Django 3.2 or higher
 - pip (Python package installer)
@@ -39,7 +39,7 @@ Before installing Django PDF Export, ensure you have:
 ### 🎨 Design & Customization
 Through the ExportPDFSettings model, you can configure:
 - Page Layout:
-  - Items per page (1-50)
+  - Items per page (1–100)
   - Page margins (5-50mm)
   - Automatic column width calculation
   - Smart pagination handling
@@ -117,9 +117,11 @@ python manage.py migrate
 
 ### 4. Set up Fonts
 
-The package uses fonts from your project's `static/assets/fonts` directory. The default font is DejaVu Sans, which provides excellent Unicode support.
+**DejaVu Sans** is bundled with the app at `django_pdf_actions/static/django_pdf_actions/fonts/DejaVuSans.ttf`, so PDF export works after `collectstatic` (or via staticfiles finders) without copying that file yourself.
 
-To use custom fonts:
+Use your project’s **`static/assets/fonts/`** directory only for **extra** or **override** fonts (TTF/OTF). The exporter checks `<BASE_DIR>/static/assets/fonts/<filename>` first, then staticfiles (including the bundled default).
+
+To add custom fonts:
 1. Create the fonts directory if it doesn't exist:
    ```bash
    mkdir -p static/assets/fonts
@@ -189,9 +191,9 @@ The active configuration will be used for all PDF exports across your admin inte
 | Setting | Description | Default | Range |
 |---------|-------------|---------|--------|
 | Page Size | PDF page size | A4 | A4, A3, A2, A1 |
-| Items Per Page | Rows per page | 10 | 1-50 |
+| Items Per Page | Rows per page | 10 | 1–100 |
 | Page Margin | Page margins | 15mm | 5-50mm |
-| Font Name | TTF font to use | DejaVuSans.ttf | Any installed TTF |
+| Font Name | Font file to use | DejaVuSans.ttf | TTF (bundled in app; optional overrides in ``static/assets/fonts``) |
 | Header Font Size | Header text size | 10 | 6-24 |
 | Body Font Size | Content text size | 7 | 6-18 |
 | Logo | Company logo | Optional | Image file |

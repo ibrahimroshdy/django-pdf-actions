@@ -62,9 +62,11 @@ python manage.py migrate
 
 ### 3. Set up Fonts
 
-The package uses fonts from your project's `static/assets/fonts` directory. Here's how to set them up:
+DejaVu Sans ships inside **django_pdf_actions** (`django_pdf_actions/static/django_pdf_actions/fonts/DejaVuSans.ttf`). You do **not** need to duplicate it under your project’s `static/assets/fonts/` unless you want a different file with the same name.
 
-1. Create the fonts directory:
+Use **`static/assets/fonts/`** in your project for additional fonts or overrides. Typical setup:
+
+1. Create the fonts directory (for custom fonts):
 ```bash
 mkdir -p static/assets/fonts
 ```
