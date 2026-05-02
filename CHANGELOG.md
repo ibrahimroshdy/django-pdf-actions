@@ -5,6 +5,11 @@ All notable changes to Django PDF Actions will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Pinned **ReportLab** to `>=4.0.4,<4.4` so **Python 3.8** stays supported: 4.4+ calls `hashlib.md5(..., usedforsecurity=False)`, which is only valid on Python 3.9+ and breaks PDF generation on 3.8 (e.g. GitHub Actions `ubuntu-24.04`).
+
 ## [0.1.11] - 2025-02-09
 
 ### Added

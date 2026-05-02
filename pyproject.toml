@@ -45,7 +45,8 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.8,<4"
 Django = ">=3.2"
-reportlab = "^4.0.4"
+# ReportLab 4.4+ passes hashlib.md5(..., usedforsecurity=False), which requires Python 3.9+.
+reportlab = ">=4.0.4,<4.4"
 arabic-reshaper = "^3.0.0"
 python-bidi = ">=0.4.0"
 django-model-utils = ">=4.0.0"
