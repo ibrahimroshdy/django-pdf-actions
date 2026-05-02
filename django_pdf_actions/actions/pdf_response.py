@@ -8,7 +8,8 @@ Request trace (landscape example)
 3. ``get_active_settings()`` (``utils``) returns the active row, ``None`` if none exist, or the
    first by primary key if multiple rows are marked active (with a warning).
 4. Page size from ``get_page_size(pdf_settings)``; if *landscape*, width/height are swapped.
-5. ``setup_font`` → ``resolve_font_path`` (project ``static/assets/fonts`` then staticfiles finders).
+5. ``setup_font`` → ``resolve_font_path`` (project ``static/assets/fonts`` then staticfiles
+   finders).
 6. ``reshape_to_arabic`` builds the table matrix from ``modeladmin.list_display`` + queryset rows
    (headers from field verbose names or admin ``short_description``; cells from attributes or
    admin callables).
@@ -56,8 +57,8 @@ def build_pdf_export_response(modeladmin, queryset, *, landscape: bool) -> HttpR
         rows_per_page = pdf_settings.items_per_page if pdf_settings else 20
         max_chars = pdf_settings.max_chars_per_line if pdf_settings else 40
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = (
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
         f'attachment; filename="{modeladmin.model.__name__}_export_'
         f'{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.pdf"'
     )
@@ -69,10 +70,16 @@ def build_pdf_export_response(modeladmin, queryset, *, landscape: bool) -> HttpR
     font_name = setup_font(pdf_settings)
     logo_source = get_logo_path(pdf_settings)
     header_bg_color = (
-        hex_to_rgb(pdf_settings.header_background_color) if pdf_settings else colors.lightgrey
+        hex_to_rgb(pdf_settings.header_background_color)
+        if pdf_settings
+        else colors.lightgrey
     )
-    grid_color = hex_to_rgb(pdf_settings.grid_line_color) if pdf_settings else colors.black
-    table_style = create_table_style(pdf_settings, font_name, header_bg_color, grid_color)
+    grid_color = (
+        hex_to_rgb(pdf_settings.grid_line_color) if pdf_settings else colors.black
+    )
+    table_style = create_table_style(
+        pdf_settings, font_name, header_bg_color, grid_color
+    )
 
     table_width = canvas_width - (2 * page_margin)
     table_height = canvas_height - (3 * page_margin)
@@ -95,9 +102,7 @@ def build_pdf_export_response(modeladmin, queryset, *, landscape: bool) -> HttpR
         pdf_settings.body_font_size if pdf_settings else 7,
     )
     total_rows = len(data) - 1
-    total_pages = max(
-        1, int((total_rows + rows_per_page - 1) // rows_per_page)
-    )
+    total_pages = max(1, int((total_rows + rows_per_page - 1) // rows_per_page))
 
     header_margin = page_margin + (10 * mm)
     table_top_margin = header_margin + (8 * mm)

@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+# Views are intentionally empty; PDF export is driven via admin actions.

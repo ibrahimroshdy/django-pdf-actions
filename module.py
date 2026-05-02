@@ -5,7 +5,7 @@ import django
 from django.db import transaction
 from faker import Faker
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dj_actions_pdf.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dj_actions_pdf.settings")
 django.setup()
 from .django_pdf_actions.models import ExportPDFSettings
 
@@ -28,7 +28,7 @@ def create_fake_export_pdf_settings():
     dummy8 = fake.word()
     dummy9 = fake.word()
     # Create a fake image file
-    image_path = os.path.join(os.path.dirname(__file__), 'media/export_pdf/logo.png')
+    image_path = os.path.join(os.path.dirname(__file__), "media/export_pdf/logo.png")
 
     export_pdf_settings = ExportPDFSettings.objects.create(
         title=title,
@@ -42,8 +42,7 @@ def create_fake_export_pdf_settings():
         dummy6=dummy6,
         dummy7=dummy7,
         dummy8=dummy8,
-        dummy9=dummy9
-
+        dummy9=dummy9,
     )
     return export_pdf_settings
 
